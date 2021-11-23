@@ -1,0 +1,371 @@
+---
+title: "Flim_Figure1"
+author: "tara"
+date: "4/28/2020"
+output: html_document
+---
+
+
+
+```{r packages, echo=FALSE}
+require(ggplot2)
+require(gridExtra)
+require(grid)
+require(extrafont)
+require(ggforce)
+
+```
+
+```{r flim}
+xt<-seq(0,100,.1)
+yt=exp(-xt*2)
+
+xt2<-seq(0,100,.1)
+yt2=exp(-xt2*.5)
+
+
+xt3<-seq(0,100,.1)
+yt3=exp(-xt*2)+exp(-xt2*.5)
+
+xseq<-seq(-100,100,.01)
+densities<-dnorm(xseq, 0,.3)
+
+#densities<-dnorm(xt, 0,.1)
+cbbPalette <- c("#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+
+# lines
+grid.lines(x = unit(c(0.42, 0.74), "npc"),
+          y = unit(c(0.8, 0.86), "npc"),
+        gp = gpar(fill="black"),
+          arrow = arrow(length = unit(0.2, "inches"), 
+            ends="last", type="closed"))
+
+#flim
+FLIM1<-ggplot()+geom_line(aes(xseq/5,densities), color='grey')+
+  geom_line(aes((xt)+.05, yt*1.1),color="#56B4E9",size=1, linetype="dashed")+
+   geom_line(aes((xt2)+.1, yt2*.5),color='#E69F00',size=1, linetype="dashed")+
+  geom_line(aes((xt3)+.08, yt3*.4),color="#009E73",size=2, linetype="solid")+
+  xlim(-.5,3)+
+  theme(
+        plot.background = element_rect(fill="white"),
+        panel.background = element_rect(fill="white", color="black"),
+        panel.grid = element_blank(),
+        axis.text.y  =element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks=element_blank(),
+        axis.title.y = element_text(color="black", size=12),
+      axis.title.x= element_text(color="black", size=12),
+        strip.background = element_rect(color="black", fill="white"),
+        strip.text =element_text(color="black", size=12),
+                               legend.text=element_text(size=12),
+     strip.text.y=element_text(angle=0),
+     strip.text.x=element_text(angle=0),
+   plot.title = element_text(hjust = 0.5, size=12),
+        legend.title=element_text(size=12))+
+  ylab("Intensity")+
+  xlab("time (ns)")
+
+
+
+
+### flim modulation+phase ###
+
+
+FLIM_mod_phase<-ggplot()+
+  geom_line(aes(xseq/3,densities), color='#696969')+ #laser pulse
+  geom_line(aes((xt)+.06, yt*1.1),color="#E69F00",size=1, linetype="dashed")+
+   geom_line(aes((xt2)+.18, yt2*.5),color='#56B4E9',size=1, linetype="dotdash")+
+  geom_line(aes((xt3)+.1, yt3*.4),color="#009E73",size=2, linetype="solid")+
+  geom_vline(aes(xintercept=xseq[which(densities==max(densities))]), color='black')+
+     geom_segment(color="#696969",aes(x=.05, xend=.05, y=max(densities), yend=(max(yt)*1.1)+.02),arrow = arrow(length = unit(0.03, "npc")))+
+    geom_segment(color="#696969", aes(x=.2, xend=.2, y=max(densities), yend=(max(yt2)*.5)+.02),arrow = arrow(length = unit(0.03, "npc")))+
+  geom_segment(color="#696969", aes(x=.1, xend=.1, y=max(densities), yend=(max(yt3)*.4)+0.02),arrow = arrow(length = unit(0.03, "npc")))+
+  geom_segment(color="#696969", aes(x=0, xend=.2, y=max(densities), yend=(max(densities))))+
+   geom_segment(color="#696969", aes(x=xseq[which(densities==max(densities))], xend=.05, y=max(yt)*1.1, yend=max(yt)*1.1),arrow = arrow(length = unit(0.03, "npc")))+
+    geom_segment(color="#696969",aes(x=xseq[which(densities==max(densities))], xend=.2, y=max(yt2)*.5, yend=max(yt2)*.5),arrow = arrow(length = unit(0.03, "npc")))+
+  geom_segment(color="#696969", aes(x=xseq[which(densities==max(densities))], xend=.1, y=max(yt3)*.4, yend=max(yt3)*.4),arrow = arrow(length = unit(0.03, "npc")))+
+  xlim(-.5,3)+
+  theme(
+        plot.background = element_rect(fill="white"),
+        panel.background = element_rect(fill="white", color="black"),
+        panel.grid = element_blank(),
+        axis.text.y  =element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks=element_blank(),
+        axis.title.y = element_text(color="black", size=16),
+      axis.title.x= element_text(color="black", size=16),
+        strip.background = element_rect(color="black", fill="white"),
+        strip.text =element_text(color="black", size=12),
+      legend.text=element_text(size=12),
+     strip.text.y=element_text(angle=0),
+     strip.text.x=element_text(angle=0),
+   plot.title = element_text(hjust = 0.5, size=12),
+        legend.title=element_text(size=12))+
+  ylab("Intensity")+
+  xlab("time (ns)")
+
+phasorFun <- function(omega,time){
+  #convert megaheartz to nanoseconds
+  NS =omega*2*pi/1000
+  g=1/(1+(NS*time)^2)
+  s=NS*time/(1+(NS*time)^2)
+ return(data.frame(g=g, s=s, lifetime=time))
+}
+
+circleFun <- function(center = c(0.5,0),diameter = 1 , npoints = 100){
+    r = diameter / 2
+    tt <- seq(0,2*pi,length.out = npoints)
+    xx <- center[1] + r * cos(tt)
+    yy <- center[2] + r * sin(tt)
+    return(data.frame(x = xx, y = yy))
+}
+
+circle1<- circleFun()
+
+freeNADH<-phasorFun(80,0.4)
+enzymeNADH<-phasorFun(80,3.4)
+
+lifetime_example<-freeNADH/2 + enzymeNADH/2
+slope=(enzymeNADH$s-freeNADH$s)/(enzymeNADH$g-freeNADH$g)
+
+#line1
+deltax=lifetime_example$g - freeNADH$g
+deltay=lifetime_example$s - freeNADH$s
+line_length= sqrt(deltax^2 + deltay^2)
+changex<-deltay*0.03/line_length
+changey<-(-deltax)*0.03/line_length
+  
+  
+flimphasor<-ggplot()+  geom_segment(data=rbind(freeNADH, enzymeNADH), aes(x= 0.9611449, y=0.1932496, xend= 0.2550519, yend=0.4358904), linetype="dotted")+
+  geom_path(data=subset(circle1, y>0),aes(x=x,y=y))+
+  geom_point(data = freeNADH, aes(x=g, y=s), color="#E69F00", size=6, shape=15)+
+  geom_point(data=enzymeNADH, aes(x=g,y=s), color="#56B4E9", size=6)+
+    geom_point(data=lifetime_example, aes(x=g-0.2,y=s+0.07), color="#009E73", size=8, shape=18)+
+ # geom_text(data=circle,x=0.685, y=0.1932496-0.05, label=("FC"),size=9)+
+
+   theme( plot.background = element_rect(fill="white"),
+        panel.background = element_rect(fill="white", color="black"),
+        panel.grid = element_blank(),
+        axis.text.y  =element_text(color="black",size=16),
+        axis.text.x=element_text(color="black",size=16),
+        axis.ticks=element_blank(),
+        axis.title.y = element_text(color="black", size=16),
+      axis.title.x= element_text(color="black", size=16),
+        strip.background = element_rect(color="black", fill="white"),
+        strip.text =element_text(color="black", size=12),
+      legend.text=element_text(size=12),
+     strip.text.y=element_text(angle=0),
+     strip.text.x=element_text(angle=0),
+   plot.title = element_text(hjust = 0.5, size=12),
+        legend.title=element_text(size=12))+
+  xlab(expression('G=M'%*%'cos('~phi~')'))+
+  ylab(expression('S=M'%*%'sin('~phi~')'))+
+  scale_x_continuous(breaks=pretty_breaks(n=3))+
+  scale_y_continuous(breaks=pretty_breaks(n=1))
+
+freeNADH$object<-c("Species1")
+enzymeNADH$object<-c("Species2")
+freeNADH$FC<-c(0.25)
+enzymeNADH$FC<-c(0.75)
+
+fcdf<- rbind(enzymeNADH, freeNADH)
+
+fcdf$object<-factor(fcdf$object, levels=c("Species2", "Species1"))
+flim_fc <- ggplot()+
+  geom_col(data=fcdf, aes(x=object, y=FC, fill=object), color="black")+
+   theme( plot.background = element_rect(fill="white"),
+        panel.background = element_rect(fill="white", color="black"),
+        panel.grid = element_blank(),
+        axis.text.x  =element_text(size=12, color="black"),
+        axis.text.y=element_text(size=12, color="black"),
+        axis.ticks=element_blank(),
+        axis.title.y =element_blank(),
+      axis.title.x= element_blank(),
+        strip.background = element_rect(color="black", fill="white"),
+        strip.text =element_text(color="black", size=12),
+      legend.text=element_text(size=12),
+      legend.position = "none",
+      legend.background = element_blank(),
+     strip.text.y=element_text(angle=0),
+     strip.text.x=element_text(angle=0),
+   plot.title = element_text(hjust = 0.5, size=16),
+        legend.title=element_text(size=12))+
+  ggtitle("Fractional contribution:")+
+  scale_fill_manual(values=c( "#56B4E9","#E69F00"))+
+  coord_flip()+
+  scale_y_continuous(breaks=pretty_breaks(n=2),limits = c(0,1))
+
+```
+
+
+``` {r spectral}
+
+
+
+xseq2<-seq(-100,100, .1)
+xseq3<-seq(-200,200, .1)
+dnorm(xseq2, 0,1)
+norm1=dnorm(xseq2, 0,20)
+norm2=dnorm(xseq2, 0,20)/2
+x1=xseq2+380
+x2=xseq3+400
+
+
+
+x=seq(-50,100,0.1)
+sig=10
+sig2=10
+ysample<-exp(-(x-45)^2/(2*sig^2))+(exp(-(x-20)^2/(2*sig2^2)))/2
+y1<-exp(-(x-45)^2/(2*sig^2))
+y2<-exp(-(x-20)^2/(2*sig2^2))
+
+spectraltrace<-ggplot()+ geom_line(aes(x=x, y=ysample*.8), linetype="solid", color="#CC79A7",size=2)+
+  geom_line(aes(x=x, y=y1), color="#D55E00", linetype="dashed")+
+  geom_line(aes(x=x,y=y2), color="#0072B2", linetype="dashed")+
+  theme( plot.background = element_rect(fill="white"),
+        panel.background = element_rect(fill="white", color="black"),
+        axis.ticks = element_blank(),
+        panel.grid = element_blank(),
+        axis.text.y  =element_blank(),
+       axis.text.x=element_blank(),
+        axis.title.y = element_text(color="black", size=16),
+      axis.title.x= element_text(color="black", size=16),
+        strip.background = element_rect(color="black", fill="white"),
+        strip.text =element_text(color="black", size=16),
+                               legend.text=element_text(size=12),
+     strip.text.y=element_text(angle=0),
+     strip.text.x=element_text(angle=0),
+   plot.title = element_text(hjust = 0.5, size=12),
+        legend.title=element_text(size=12))+
+  ylab("Intensity")+
+  xlab("Emission")+
+  geom_vline(xintercept =-10,color="#696969")+
+geom_segment(aes(x=-10, xend=20, y=1, yend=1), arrow=arrow(length=unit(0.03, "npc")), color="#696969")+
+geom_segment(aes(x=-10, xend=45, y=1.02, yend=1.02), arrow=arrow(length=unit(0.03, "npc")),color="#696969")+
+  geom_segment(aes(x=-10, xend=30, y=0.52, yend=0.52), arrow=arrow(length=unit(0.03, "npc")),color="#696969")+
+    geom_segment(aes(xend=18, x=55, y=0.4, yend=0.4), arrow=arrow(length=unit(0.03, "npc")),color="#696969")+
+   geom_segment(aes(xend=57, x=55, y=0.4, yend=0.4), arrow=arrow(length=unit(0.03, "npc")),color="#696969")+
+   geom_segment(aes(xend=6, x=32, y=0.44, yend=0.44), arrow=arrow(length=unit(0.03, "npc")),color="#696969")+
+   geom_segment(aes(xend=33, x=32, y=0.44, yend=0.44), arrow=arrow(length=unit(0.03, "npc")),color="#696969")+
+   geom_segment(aes(xend=6, x=32, y=0.44, yend=0.44), arrow=arrow(length=unit(0.03, "npc")),color="#696969")+
+   geom_segment(aes(x=55, xend=33, y=0.44, yend=0.44), arrow=arrow(length=unit(0.03, "npc")),color="#696969")+
+     geom_segment(aes(x=55, xend=58, y=0.44, yend=0.44), arrow=arrow(length=unit(0.03, "npc")),color="#696969")
+
+
+  
+# spectral g 
+
+
+
+orange<-data.frame(cbind(-0.5,0.1))
+blue<-data.frame(cbind(-0.1,0.6))
+pink<-orange/2 + blue/2 #CC79A7
+
+  
+circleFun <- function(center = c(0,0),diameter = 2 , npoints = 100){
+    r = diameter / 2
+    tt <- seq(0,2*pi,length.out = npoints)
+    xx <- center[1] + r * cos(tt)
+    yy <- center[2] + r * sin(tt)
+    return(data.frame(x = xx, y = yy))
+  }
+  
+
+circle<- circleFun()
+
+
+specphasor<-ggplot()+
+    geom_segment(data=rbind(orange, blue), aes(x=orange$X1, y=orange$X2, xend= blue$X1, yend=blue$X2), linetype="dotted")+
+  geom_path(data=subset(circle),aes(x=x,y=y))+
+  geom_point(data=orange, aes(x=X1, y=X2), color="#D55E00", size=6, shape=15)+
+  geom_point(data=blue, aes(x=X1,y=X2), color="#0072B2", size=6)+
+    geom_point(data=pink, aes(x=X1-0.04,y=X2-0.055), color="#CC79A7", size=8, shape=18)+
+ # geom_text(data=circle,x=0.685, y=0.1932496-0.05, label=("FC"),size=9)+
+   theme( plot.background = element_rect(fill="white"),
+        panel.background = element_rect(fill="white", color="black"),
+        panel.grid.major = element_blank(),
+        axis.text=element_text(color="black",size=16),
+        axis.ticks=element_blank(),
+        axis.title.y = element_text(color="black", size=16),
+      axis.title.x= element_text(color="black", size=16),
+        strip.background = element_rect(color="black", fill="white"),
+        strip.text =element_text(color="black", size=12),
+      legend.text=element_text(size=12),
+     strip.text.y=element_text(angle=0),
+     strip.text.x=element_text(angle=0),
+   plot.title = element_text(hjust = 0.5, size=12),
+        legend.title=element_text(size=12))+
+  xlab(expression('G=M'%*%'cos('~phi~')'))+
+  ylab(expression('S=M'%*%'sin('~phi~')'))+
+  geom_hline(yintercept=0, color="grey")+
+  geom_vline(xintercept=0, color="grey")
+
+freeNADH$object <- c("Species2")
+enzymeNADH$object<-c("Species1")
+newdf<-rbind(freeNADH, enzymeNADH)
+newdf$object<-factor(newdf$object, levels=c("Species2", "Species1"))
+
+spec_fc <- ggplot()+
+  geom_col(data=newdf, aes(x=object, y=FC, fill=object), color="black")+
+   theme( plot.background = element_rect(fill="white"),
+        panel.background = element_rect(fill="white", color="black"),
+        panel.grid = element_blank(),
+        axis.text.x  =element_text(size=12, color="black"),
+        axis.text.y=element_text(size=12, color="black"),
+        axis.ticks=element_blank(),
+        axis.title.x = element_blank(),
+      axis.title.y= element_blank(),
+        strip.background = element_rect(color="black", fill="white"),
+        strip.text =element_text(color="black", size=12),
+      legend.text=element_text(size=12),
+      legend.position = "none",
+      legend.background = element_blank(),
+     strip.text.y=element_text(angle=0),
+     strip.text.x=element_text(angle=0),
+   plot.title = element_text(hjust = 0.5, size=16),
+        legend.title=element_text(size=12))+
+  ggtitle("Fractional contribution:")+
+  scale_fill_manual(values=c("#0072B2","#D55E00"))+
+  coord_flip()+
+   scale_y_continuous(breaks=pretty_breaks(n=2),limits = c(0,1))
+
+  
+ 
+
+
+
+```
+
+```{r grid}
+
+tableA<-textGrob(c("A"), gp=gpar(fontsize=40), vjust=c(-3)) 
+tableB<-textGrob(c("B"), gp=gpar(fontsize=40), vjust=c(-3)) 
+
+blank<-textGrob(c("    "))
+flim_text<-textGrob("Lifetime Phasor", gp=gpar(fontsize=24))
+spec_text<-textGrob("Spectral Phasor", gp=gpar(fontsize=24))
+
+toppanel<-arrangeGrob(flim_text,
+  arrangeGrob(arrangeGrob(tableA,FLIM_mod_phase, ncol=2, widths=c(1,12)),
+  arrangeGrob(blank,arrangeGrob(flimphasor, flim_fc,blank, nrow=3, heights=c(3,1.5,1)), ncol=2, widths =c(1,4))
+  , ncol=2, widths=c(1,1)),
+  nrow=2, heights=c(1,12)
+)
+
+
+bottompanel<-arrangeGrob(spec_text, 
+  arrangeGrob(
+  arrangeGrob(tableB,spectraltrace, ncol=2,widths=c(1,12)),
+  arrangeGrob(blank,arrangeGrob(specphasor, spec_fc, nrow=2, heights=c(4,1.5)), ncol=2, widths =c(1,4))
+  , ncol=2, widths=c(1,1)),
+  nrow=2, heights=c(1,12))
+
+figure1<-arrangeGrob(toppanel, bottompanel, nrow=2)
+
+ggsave(plot=figure1, filename = "/Volumes/GoogleDrive/My Drive/Spectral_lifetime_deconvolution/figure1.eps", device='eps', height=8, width=10)
+
+
+
+
+
+```

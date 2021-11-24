@@ -9,6 +9,7 @@ Created on Mon Mar 16 14:34:57 2020
 # make plots of zeiss LSM files containing spectral 32-channel images
 
 # libraries
+import utils.lsmfiles as lsmfiles
 import os
 import tifffile as tiff
 import numpy as np
@@ -16,11 +17,26 @@ import matplotlib.pyplot as plt
 import pandas as pd 
 import seaborn as sns
 
+
+
+start=410
+end=695
+
+
+
+
+
+
 wavelen=np.linspace(410,695,32)  # make list of wavelengths for channels 1-32
-os.chdir("/Volumes/GoogleDrive/My Drive/PseudomonasImaging/Data/Spectral/Flourophores")
+
+
+spectral_dir = ("/Users/sltg/Documents/GitHub/PseudomonasFLIM/Data/Spectral/")
+
 
 # for loop
-background=tiff.imread("/Volumes/GoogleDrive/My Drive/PseudomonasImaging/Data/Spectral/TCEP_gradients/Blank_blank1mMTCEPblank_20p_68fov_spectral_63xOil_740nm_410-695_9nmstep_4usdwell_bidi16bitlinesum.lsm")
+background=tiff.imread(spectral_dir + "pyo_tcep_gradients/Blank_blank1mMTCEPblank_20p_68fov_spectral_63xOil_740nm_410-695_9nmstep_4usdwell_bidi16bitlinesum.lsm")
+
+
 background = np.sum(background[0,0,:,:,:],2)
 background=np.sum(background,1)[0:32]
 background=pd.DataFrame(background)
@@ -31,6 +47,7 @@ background.insert(1, "Normalized", background.Intensity/sum(background.Intensity
 
 spec_df=pd.DataFrame()
 spec_df=pd.DataFrame()
+
 for file in os.listdir():
     image_stack=tiff.imread(file)
     spec = np.sum(image_stack[0,0,:,:,:],2) 

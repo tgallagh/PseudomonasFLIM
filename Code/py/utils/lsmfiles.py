@@ -117,7 +117,7 @@ def scale(df, wavelen):
     df = df[0:len(wavelen)]
     df = pd.DataFrame(df)
     df = df.rename(columns={0:"Intensity"})
-    df.insert(1, "Normalized", df.Intensity/sum(df.Intensity))
+    df.insert(1, "Normalized", df.Intensity/max(df.Intensity))
     df.insert(0, "Wavelength", wavelen)
     return df
 

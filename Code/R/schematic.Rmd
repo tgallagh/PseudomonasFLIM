@@ -13,6 +13,7 @@ require(gridExtra)
 require(grid)
 require(extrafont)
 require(ggforce)
+require(scales)
 
 ```
 
@@ -362,9 +363,22 @@ bottompanel<-arrangeGrob(spec_text,
 
 figure1<-arrangeGrob(toppanel, bottompanel, nrow=2)
 
-ggsave(plot=figure1, filename = "/Volumes/GoogleDrive/My Drive/Spectral_lifetime_deconvolution/figure1.eps", device='eps', height=8, width=10)
 
 
+
+#ggsave(plot=figure1, filename = "/Volumes/GoogleDrive/My Drive/Spectral_lifetime_deconvolution/figure1.eps", device='eps', height=8, width=10)
+
+
+### simplified panel for just flim 
+
+new_toppanel <-
+  arrangeGrob(flim_text, 
+    arrangeGrob(FLIM_mod_phase, 
+              arrangeGrob(flimphasor, flim_fc, nrow=2, heights=c(3,1.5), ncol=1), 
+    ncol = 2, widths = c(1,1)),  
+  nrow = 2, heights = c(1,12) )
+
+ggsave(plot=new_toppanel, filename = "/Users/sltg/Documents/GitHub/PseudomonasFLIM/Output/Figures/fig1_schematic.eps", device='eps', height=4, width=10)
 
 
 

@@ -52,11 +52,31 @@ def get_ref(path):
             s2=f.asarray()[4,2:253,2:253]*np.sin(np.radians(f.asarray()[3,2:253,2:253]))
             g2=f.asarray()[4,2:253,2:253]*np.cos(np.radians(f.asarray()[3,2:253,2:253]))
             df = pd.DataFrame() 
-            df['s1']= s1.flatten()
-            df['g1'] = g1.flatten()
-            df['s2'] = s2.flatten()
-            df['g2'] = g2.flatten()
-            df['dc'] = dc.flatten()
+            
+            df_s1 = pd.DataFrame(s1).unstack().reset_index()
+            df_s1.columns = ['x', 'y' , 's1']
+            
+            df_g1 = pd.DataFrame(g1).unstack().reset_index()
+            df_g1.columns = ['x', 'y' , 'g1']
+            
+                        
+            df_g2 = pd.DataFrame(g2).unstack().reset_index()
+            df_g2.columns = ['x', 'y' , 'g2']
+            
+                        
+            df_s2 = pd.DataFrame(s2).unstack().reset_index()
+            df_s2.columns = ['x', 'y' , 's2']
+            
+                        
+            df_dc = pd.DataFrame(dc).unstack().reset_index()
+            df_dc.columns = ['x', 'y' , 'dc']
+            
+            
+            df = df_s1.merge(df_g1, left_on=(['x','y']) , right_on=['x','y'])
+            df = df.merge(df_s2, left_on=(['x','y']) , right_on=['x','y'])
+            df = df.merge(df_g2, left_on=(['x','y']) , right_on=['x','y'])
+            df = df.merge(df_dc, left_on=(['x','y']) , right_on=['x','y'])
+            
             df.insert(0, "FileName", path)
             
             return df

@@ -14,7 +14,7 @@ import utils.flimfiles as flim
 
 
 
-df_path = '/Users/sltg/Documents/GitHub/PseudomonasFLIM/Data/Processed/df_fig2_flim.csv'
+df_path = '/Users/sltg/Documents/GitHub/PseudomonasFLIM/Data/Processed/df_refs_flim.csv'
 dir_path = '/Users/sltg/Documents/GitHub/PseudomonasFLIM/Data/FLIM/references/'
 
 

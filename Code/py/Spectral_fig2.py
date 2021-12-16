@@ -67,7 +67,22 @@ sns.lineplot(x="Wavelength", y="Normalized", hue="Sample", data=spec_df[spec_df.
 spec_df.to_csv(df_path)
 semrock_filter.to_csv(df_sem_path)
 
+ ### get oh phz data
  
+ohphz_dir = '/Users/sltg/Documents/GitHub/PseudomonasFLIM/Data/Spectral/Dyes/OhPhz/'
+ohphz_path = '/Users/sltg/Documents/GitHub/PseudomonasFLIM/Data/Processed/df_ohphz_spectra.csv'
 
+spec_df = pd.DataFrame()
+for file in os.listdir(ohphz_dir):
+    if 'lsm' in file:
+        path = ohphz_dir + file
+        df = lsmfiles.get_lsm(path)
+        spectra, wavelen = lsmfiles.channels(path)
+        df = lsmfiles.frame_sum(df)
+        df = lsmfiles.scale(df, wavelen)
+        df.insert(0, "FileName", file)
+        spec_df = spec_df.append(df)
+        
+spec_df.to_csv(ohphz_path)
 
-
+        

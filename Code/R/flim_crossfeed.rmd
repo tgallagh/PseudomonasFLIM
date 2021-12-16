@@ -1,0 +1,674 @@
+---
+title: "flim_crossfeed"
+output: html_document
+---
+
+
+```{r packages}
+require(dplyr)
+require(ggplot2)
+require(gridExtra)
+require(grid)
+require(extrafont)
+require(ggforce)
+require(scales)
+library(RColorBrewer)
+library(data.table)
+library(fasano.franceschini.test)
+
+```
+
+
+```{r colors and shapes}
+
+circleFun <- function(center = c(0.5,0),diameter = 1 , npoints = 100){
+    r = diameter / 2
+    tt <- seq(0,2*pi,length.out = npoints)
+    xx <- center[1] + r * cos(tt)
+    yy <- center[2] + r * sin(tt)
+    return(data.frame(x = xx, y = yy))
+}
+
+circle1<- circleFun()
+
+
+color_map_1<-c(
+  "Enzyme-bound NADH"="#0072b2",
+  "MDH NADH"= "#0072b2", 
+  "Free NADH"= "#e69f00",
+   "PVD"="#d55e00",
+  "PYO"="#56b4e9", 
+  "PYO (Reduced)" = "#56b4e9",
+  "OHPhz (Reduced)" = "#009e73", 
+  "FAD" = "#EE9B00" , 
+   "CPX" = "#9B2226" ,
+  "OLS" = "black" , 
+  "PVD + Fe" = "#f0e442" )
+
+color_map_2<-c(
+  "Enzyme-bound NADH"="#272727",
+  "MDH NADH"="#272727",
+  "Free NADH"="#696773",
+   "PVD"="#FED766",
+  "PYO"="#009FB7")
+
+#EFF1F3
+
+shape_maps<-c(
+  "Enzyme-bound NADH"=22,
+  "MDH NADH"=22,
+  "Free NADH"=23,
+   "PVD"=24,
+  "PYO"=25 , 
+  "PYO (Reduced)" = 25 , 
+  "OHPhz (Reduced)" = 21,
+  "FAD" = 21 , 
+  "CPX" = 22 ,
+  "OLS" = 22)
+
+
+# media color maps
+media_colors <- c(
+  "ASM" = "#444444", 
+  "M9 suc" = "#D3B2D9" ,
+  "M9 suc+sup" = "#FF7700" )
+
+media_shapes <- c(
+  "ASM" = 21 , 
+  "M9 suc" = 22  ,
+  "M9 suc+sup" = 23 )
+
+color_shape_maps<-c(
+  "Enzyme-bound NADH"= 0,
+  "MDH NADH"= 0,
+  "Free NADH"=5,
+   "PVD"= 2 ,
+  "PYO"= 6 )
+
+# gradient color map
+yellow_blue_1 <- c('#EDF8B1',  '#C7E9B4' , "#41B6C4" , "#225EA8" , "#081D58" )
+yellow_blue <- c('#EDF8B1',  '#C7E9B4' , "#41B6C4" , "#225EA8"  )
+yellow_red <- c("#ffba08", "#f48c06",  "#dc2f02", "#9d0208") 
+green_red_1 <- c("#90BE6D" , "#F9C74F", "#F8961E", "#F3722C" ,  "#F94144")
+green_red <- c("#90BE6D" , "#F9C74F",  "#F94144")
+blue_yellow_orange <- c("#3BCFD4", "#D7FC05", "#EC6E20")
+purple_green <- c('#7C65A9' ,"#96D4CA") 
+blue_green_orange <- c("#0088FF" ,"#5BCA7A" ,  "#FF6200")
+white_black <- c("#F8F8FF", "#CAC9CD" ,  "#9B9A9C" , "#6D6A6A" , "#3E3B39" , "#100C07" )
+
+```
+
+```{r references}
+
+ref <- read.csv( file = "/Users/sltg/Documents/GitHub/PseudomonasFLIM/Data/Processed/ref_flim_means.csv")
+
+```
+
+
+```{r lifetime phasor }
+
+phasorFun <- function(omega,time){
+  #convert megaheartz to nanoseconds
+  NS =omega*2*pi/1000
+  g=1/(1+(NS*time)^2)
+  s=NS*time/(1+(NS*time)^2)
+ return(data.frame(mean_g1=g, mean_s1=s, lifetime=time))
+}
+
+
+enzymeNADH<-phasorFun(80,3.2)
+phasorFun(80,10)
+enzymeNADH$object<-c("Enzyme-bound NADH")
+
+oxlipid<-phasorFun(80,7.8)
+
+oxlipid$object<-c("OLS")
+
+ref <- rbind(ref, enzymeNADH)
+ref <- rbind(ref, oxlipid)
+
+```
+
+
+```{r x-feeding flim plot }
+
+xfeed <- read.csv(file =  '/Users/sltg/Documents/GitHub/PseudomonasFLIM/Data/Processed/df_xfeed_flim.csv', header=T)
+
+# get media condition
+xfeed$media <- ifelse(grepl('ASM', xfeed$FileName), 'ASM', 
+                      ifelse(grepl('M9s' , xfeed$FileName), 'M9 suc', 
+                             ifelse(grepl('M9g', xfeed$FileName), 'M9 glu',
+                                          'M9 pyr') ))
+
+xfeed$sup <- ifelse(grepl('sup', xfeed$FileName), 'sup' , '')
+
+xfeed$media_sup <- ifelse( xfeed$sup == 'sup', paste(xfeed$media, xfeed$sup, sep='+'), 
+                           xfeed$media) 
+
+# determine which pixels are singletons
+xfeed$info_concat <- paste(xfeed$FileName, '_', round(xfeed$g1, digits=6), '_' , round(xfeed$s1, digits=6) ) 
+xfeed$singleton <- ifelse(duplicated(xfeed$info_concat) , 'no', 'yes' ) 
+
+# get file mean 
+xfeed_means <- subset(xfeed, singleton=='no' ) %>%
+    group_by(FileName, media_sup) %>%
+    dplyr::summarize(mean_s1 = mean(s1), mean_g1=mean(g1))
+
+# bar plot 
+ggplot() + geom_boxplot( data = subset(xfeed, singleton=='no'), aes(x=media_sup, y=g1) )
+ggplot() + geom_boxplot( data = subset(xfeed, singleton=='no'), aes(x=media_sup, y=s1) )
+
+ggplot() + geom_boxplot( data = subset(xfeed_means), aes(x=media_sup, y=mean_s1) )+
+  geom_point( data = xfeed_means, aes(x=media_sup, y=mean_s1)  )
+ggplot() + geom_boxplot( data = subset(xfeed_means), aes(x=media_sup, y=mean_g1) ) + 
+  geom_point( data = xfeed_means, aes(x=media_sup, y=mean_g1)  )
+
+# phasor plot
+ggplot() + 
+  geom_path(data=subset(circle1, y>0),aes(x=x,y=y))+
+  geom_bin2d(data = subset(xfeed, singleton=='no' & media_sup=='M9 suc') , aes(x=g1, y=s1 ), fill='orange', bins=200)+
+  geom_bin2d(data = subset(xfeed, singleton=='no' & media_sup=='M9 suc+sup') , aes(x=g1, y=s1 ), fill='purple', bins=200)
+
+
+```
+
+
+```{r M9 succinate +/- sup, ASM all images}  
+
+# all M9 succinate, and M9 succinate + sup images, asn asm (control)
+all_m9s <- subset(xfeed,  ( media_sup == 'M9 suc')   ) 
+all_m9s_sup <- subset(xfeed,  ( media_sup == 'M9 suc+sup')   ) 
+all_asm <- subset(xfeed,  ( media_sup == 'ASM')   ) 
+
+all <- rbind(all_m9s, all_m9s_sup, all_asm)
+
+# binned phasor 
+all_m9s_plot <- ggplot() + geom_bin2d(data = all_m9s, aes(x=g1,y=s1), bins=250)+
+  geom_path(data=subset(circle1, y>0),aes(x=x,y=y)) +
+   geom_bin2d(data = all_m9s_sup, aes(x=g1,y=s1), bins=250)+
+  geom_path(data=subset(circle1, y>0),aes(x=x,y=y)) +
+  geom_bin2d(data = all_asm, aes(x=g1,y=s1), bins=250)+
+  geom_path(data=subset(circle1, y>0),aes(x=x,y=y))+
+  facet_grid(.~media_sup)+
+     scale_fill_gradientn( colors = rev(yellow_blue), "Number \n of pixels")
+
+
+all_asm_plot <- ggplot() + geom_bin2d(data = all_asm, aes(x=g1,y=s1, color=media_sup), bins=250)+
+  geom_path(data=subset(circle1, y>0),aes(x=x,y=y))
+
+# extract binned data 
+all_m9s_binned_data <- ggplot_build( all_m9s_plot )$data[[1]]
+all_m9s_binned_data$media_sup <- c('M9 suc')
+colnames(all_m9s_binned_data)[c(5,6)] <- c("binned_g1", "binned_s1")
+
+
+all_m9s_sup_binned_data <- ggplot_build( all_m9s_plot )$data[[3]]
+all_m9s_sup_binned_data$media_sup <- c('M9 suc+sup')
+colnames(all_m9s_sup_binned_data )[c(5,6)] <- c("binned_g1", "binned_s1")
+
+
+all_asm_binned_data <- ggplot_build( all_m9s_plot )$data[[5]]
+all_asm_binned_data$media_sup <- c('ASM')
+colnames(all_asm_binned_data )[c(5,6)] <- c("binned_g1", "binned_s1")
+
+all_binned <- rbind(all_m9s_binned_data,
+                    all_m9s_sup_binned_data, 
+                    all_asm_binned_data) 
+
+# get means 
+all_means <- all_binned %>% group_by( media_sup )%>% 
+  summarize(mean_g1 = mean(binned_g1), mean_s1=mean(binned_s1), std_g1 = sd(binned_g1), 
+            std_s1=sd(binned_s1))
+
+
+
+# file name means
+setDT(all_m9s) 
+setDT(all_m9s_binned_data)
+
+all_m9s_mapped <- all_m9s[all_m9s_binned_data, on = .(g1 >= xmin , g1 <= xmax,             
+                           s1 >= ymin , s1 <= ymax), nomatch = NA, 
+             .(g1, s1, binned_g1, binned_s1, xmin, xmax, ymin, ymax, x,y, FileName, media_sup, value)]  
+
+setDT(all_m9s_sup) 
+setDT(all_m9s_sup_binned_data)
+all_m9s_sup_mapped <- all_m9s_sup[all_m9s_sup_binned_data, on = .(g1 >= xmin , g1 <= xmax,             
+                           s1 >= ymin , s1 <= ymax), nomatch = NA, 
+             .(g1, s1, binned_g1, binned_s1, xmin, xmax, ymin, ymax, x,y, FileName, media_sup, value)]  
+
+
+
+setDT(all_asm) 
+setDT(all_asm_binned_data)
+all_asm_mapped <- all_asm[all_asm_binned_data, on = .(g1 >= xmin , g1 <= xmax,             
+                           s1 >= ymin , s1 <= ymax), nomatch = NA, 
+             .(g1, s1, binned_g1, binned_s1, xmin, xmax, ymin, ymax, x,y, FileName, media_sup,value)]  
+
+
+
+nrow(  all_m9s_sup_mapped[ !duplicated( paste(  all_m9s_sup_mapped$binned_g1,   all_m9s_sup_mapped$binned_s1)  ), ])
+
+nrow(  all_m9s_mapped[ !duplicated( paste(  all_m9s_mapped$binned_g1,   all_m9s_mapped$binned_s1)  ), ])
+
+
+nrow(  all_asm_mapped[ !duplicated( paste(  all_asm_mapped$binned_g1,   all_asm_mapped$binned_s1)  ), ])
+
+
+
+all_binned <- rbind(
+ all_m9s_sup_mapped[ !duplicated( paste(  all_m9s_sup_mapped$binned_g1,   all_m9s_sup_mapped$binned_s1)  ), ],
+ all_m9s_mapped[ !duplicated( paste(  all_m9s_mapped$binned_g1,   all_m9s_mapped$binned_s1)  ), ],
+all_asm_mapped[ !duplicated( paste(  all_asm_mapped$binned_g1,   all_asm_mapped$binned_s1)  ), ]
+)
+
+filename_means <- all_binned %>% group_by( FileName, media_sup ) %>%
+  summarize(mean_g1 = mean(binned_g1), mean_s1=mean(binned_s1), std_g1 = sd(x), 
+            std_s1=sd(y))
+
+
+all_phasor <- ggplot()+
+  geom_bin2d(data = all_asm, aes(x=g1, y = s1), bins=250) + 
+  geom_bin2d(data = all_m9s, aes(x=g1, y = s1), bins=250) + 
+    geom_bin2d(data = all_m9s_sup, aes(x=g1, y = s1), bins=250) +
+       scale_fill_gradientn( colors = rev(yellow_blue), "Number \n of pixels")+
+  geom_errorbar(data = all_means, aes(x=mean_g1, ymin = mean_s1 - std_s1, ymax = mean_s1 + std_s1), 
+    position = position_dodge2(padding = 0.5)
+  ) +
+    geom_errorbar(data = all_means, aes(y=mean_s1, xmin = mean_g1 - std_g1, xmax = mean_g1 + std_g1), 
+    position = position_dodge2(padding = 0.5)
+  ) +
+    geom_errorbar(data = all_means, aes(y=mean_s1, xmin = mean_g1 - std_g1, xmax = mean_g1 + std_g1), 
+    position = position_dodge2(padding = 0.5)
+  ) +
+    geom_point(data = all_means, aes(x=mean_g1, y = mean_s1 , shape = media_sup),
+             fill=c( media_colors[1],
+                     media_colors[2],
+                     media_colors[3]),
+             size=5)+
+    geom_point( data = ref, aes(x=mean_g1, y=mean_s1, shape=object), fill="black", size=5)+
+  theme( plot.background = element_rect(fill="white", color="white"),
+        panel.background = element_rect(fill="white", color="black"),
+        panel.grid = element_blank(), 
+        axis.text=element_text(color="black",size=12),
+        axis.ticks=element_blank(),
+        axis.title.y = element_text(color="black", size=12),
+      axis.title.x= element_text(color="black", size=12),
+        strip.background = element_rect(color="black", fill="white"),
+        strip.text =element_text(color="black", size=12),
+                               legend.text=element_text(size=10),
+     strip.text.y=element_text(angle=0),
+     strip.text.x=element_text(angle=0),
+   plot.title = element_text(hjust = 0.5, size=12),
+        legend.title=element_text(size=10) ,
+   legend.background = element_rect(color='white' , fill='white'),
+   legend.position='none',
+   legend.key = element_rect(color='white', fill='white')) +
+    xlab(expression('G=M'%*%'cos('~phi~')'))+
+  ylab(expression('S=M'%*%'sin('~phi~')'))+
+    geom_path(data=subset(circle1, y>0),aes(x=x,y=y))+
+  scale_x_continuous(breaks=pretty_breaks(n=3))+
+  scale_y_continuous(breaks=pretty_breaks(n=3), limits = c(0,1))+
+  scale_shape_manual( values = c(media_shapes, shape_maps)  , "Condition")
+
+
+### get legends
+gradient_only<-ggplot()+
+    geom_bin2d(data = all_asm, aes(x=g1, y = s1), bins=250) + 
+  geom_bin2d(data = all_m9s, aes(x=g1, y = s1), bins=250) + 
+    geom_bin2d(data = all_m9s_sup, aes(x=g1, y = s1), bins=250)+
+         scale_fill_gradientn( colors = rev(yellow_blue), "Number \n of pixels")+
+   theme( plot.background = element_rect(fill="white", color="white"),
+        panel.background = element_rect(fill="white", color="black"),
+        panel.grid = element_blank(), 
+        axis.text=element_text(color="black",size=12),
+        axis.ticks=element_blank(),
+        axis.title.y = element_text(color="black", size=12),
+      axis.title.x= element_text(color="black", size=12),
+        strip.background = element_rect(color="black", fill="white"),
+        strip.text =element_text(color="black", size=12),
+                               legend.text=element_text(size=10),
+     strip.text.y=element_text(angle=0),
+     strip.text.x=element_text(angle=0),
+   plot.title = element_text(hjust = 0.5, size=12),
+        legend.title=element_text(size=10) ,
+   legend.background = element_rect(color='white' , fill='white'),
+   legend.key = element_rect(color='white', fill='white')) +
+    xlab(expression('G=M'%*%'cos('~phi~')'))+
+  ylab(expression('S=M'%*%'sin('~phi~')'))+
+    geom_path(data=subset(circle1, y>0),aes(x=x,y=y))+
+    scale_x_continuous(breaks=pretty_breaks(n=3))+
+  scale_y_continuous(breaks=pretty_breaks(n=1), limits = c(0,1))
+
+
+flim_gradient_legend <- cowplot::get_legend(gradient_only)
+
+shapes_only<-ggplot()+
+  geom_point(data = all_means, aes(x=mean_g1, y = mean_s1 , shape = media_sup,fill=media_sup),
+             size=4)+
+  theme( plot.background = element_rect(fill="white", color="white"),
+        panel.background = element_rect(fill="white", color="black"),
+        panel.grid = element_blank(), 
+        axis.text=element_text(color="black",size=12),
+        axis.ticks=element_blank(),
+        axis.title.y = element_text(color="black", size=12),
+      axis.title.x= element_text(color="black", size=12),
+        strip.background = element_rect(color="black", fill="white"),
+        strip.text =element_text(color="black", size=12),
+                               legend.text=element_text(size=10),
+     strip.text.y=element_text(angle=0),
+     strip.text.x=element_text(angle=0),
+   plot.title = element_text(hjust = 0.5, size=12),
+        legend.title=element_text(size=10) ,
+   legend.background = element_rect(color='white' , fill='white'),
+   legend.key = element_rect(color='white', fill='white')) +
+    xlab(expression('G=M'%*%'cos('~phi~')'))+
+  ylab(expression('S=M'%*%'sin('~phi~')'))+
+    geom_path(data=subset(circle1, y>0),aes(x=x,y=y))+
+    scale_x_continuous(breaks=pretty_breaks(n=3))+
+  scale_y_continuous(breaks=pretty_breaks(n=1), limits = c(0,1))+
+  scale_shape_manual( values = media_shapes  , "Media")+
+  scale_fill_manual(values =media_colors, "Media")
+
+
+flim_shapes_legend <- cowplot::get_legend(shapes_only)
+
+all_g1_density <- ggplot() + geom_density(data = all, aes(x = g1, fill=media_sup, color = media_sup),  size=1, alpha=0.3)+
+  scale_color_manual( values = media_colors )+
+  scale_fill_manual(values = media_colors ) +
+   theme( plot.background = element_rect(fill="white", color="white"),
+        panel.background = element_rect(fill="white", color="black"),
+        panel.grid = element_blank(), 
+        axis.text=element_text(color="black",size=12),
+        axis.ticks=element_blank(),
+        axis.title.y = element_text(color="black", size=12),
+      axis.title.x= element_blank(),
+        strip.background = element_rect(color="black", fill="white"),
+        strip.text =element_text(color="black", size=12),
+                               legend.text=element_text(size=12),
+     strip.text.y=element_text(angle=0),
+     strip.text.x=element_text(angle=0),
+   plot.title = element_text(hjust = 0.5, size=12),
+        legend.title=element_blank() ,
+   legend.position = 'none')+
+  scale_y_reverse()+
+  scale_x_continuous(position="top", breaks=pretty_breaks(n=3), limits = c(0,1))+
+  ylab("Density")
+
+
+all_s1_density<- ggplot() + geom_density(data = all, aes(x = s1, fill=media_sup, color = media_sup),  size=1, alpha=0.3)+
+  scale_color_manual( values = media_colors )+
+  scale_fill_manual(values = media_colors ) +
+   theme( plot.background = element_rect(fill="white", color="white"),
+        panel.background = element_rect(fill="white", color="black"),
+        panel.grid = element_blank(), 
+        axis.text=element_text(color="black",size=12),
+        axis.ticks=element_blank(),
+        axis.title.x = element_text(color="black", size=12),
+      axis.title.y = element_blank(),
+        strip.background = element_rect(color="black", fill="white"),
+        strip.text =element_text(color="black", size=12),
+                               legend.text=element_text(size=12),
+     strip.text.y=element_text(angle=0),
+     strip.text.x=element_text(angle=0),
+   plot.title = element_text(hjust = 0.5, size=12),
+        legend.title=element_text(size=12) ,
+   legend.background = element_rect(color='white' , fill='white'),
+   legend.position='none',
+   legend.key = element_rect(color='white', fill='white')) +
+  coord_flip() + 
+    scale_x_continuous(breaks=pretty_breaks(n=1), limits = c(0,1))+
+  scale_y_reverse()+
+  ylab("Density")
+
+
+flim_shape_legend <- cowplot::get_legend(shapes_only)
+
+
+```
+
+
+```{r M9 succinate examples}
+
+# M9 succinate example image: "HypoxicP1M9S72h_Well1_4000" 17 fov
+m9s_ex <- xfeed[grepl(x = xfeed$FileName, pattern = 'HypoxicP1M9S72h_Well1_4000' ),]
+
+# M9 succinate + sup example image: "HypoxicPM9SSup72h_Well1_7000" 17 fpv
+m9ssup_ex <- xfeed[grepl(x = xfeed$FileName, pattern = 'HypoxicP1M9Ssup72h_Well1_7000' ), ]
+m9s_both <- rbind(m9s_ex, m9ssup_ex)
+
+# asm example image = "HypoxicP1ASM72h_Well1_3000" 5fov
+asm_ex <- xfeed[grepl(x = xfeed$FileName, pattern = 'HypoxicP1ASM72h_Well1_3000' ), ]
+
+ex_all <- rbind(asm_ex, m9s_both)
+
+ex_plot <- ggplot() + geom_bin2d(data = ex_all, aes(x=g1,y=s1, color=dc), bins=250)+
+  geom_path(data=subset(circle1, y>0),aes(x=x,y=y))
+
+# extract binned data
+ex_binned_data <- ggplot_build( ex_plot )$data[[1]]
+
+colnames(ex_binned_data)[c(5,6)] <- c('binned_g1' , 'binned_s1')
+
+
+ex_binned_data <- ex_binned_data[order(ex_binned_data$binned_g1 * ex_binned_data$binned_s1 ),]
+
+
+coul <- colorRampPalette( colors =  blue_green_orange)(nrow(ex_binned_data))
+
+
+ex_binned_data <- cbind(ex_binned_data, coul)
+
+
+setDT(ex_binned_data) 
+setDT(ex_all)
+
+# map binned data colors back onto full df
+ex_mapped <- ex_all[ex_binned_data, on = .(g1 >= xmin , g1 <= xmax,             
+                           s1 >= ymin , s1 <= ymax), nomatch = NA, 
+             .(g1, s1, dc, xmin, xmax, ymin, ymax, coul, x,y, FileName, media_sup, binned_g1,binned_s1)]  
+
+
+
+
+   
+# plots for m9 succinate asm example
+# flourescent intensity
+ex_dc <- ggplot() + geom_tile(data=ex_mapped, aes(x=x,y=y, fill=dc))+
+  facet_grid(.~media_sup) + 
+  scale_fill_gradientn( colours = rev(white_black), "Fluorescent \n intensity")+
+   theme( plot.background = element_rect(fill="white", color="white"),
+        panel.background = element_rect(fill="white", color="white"),
+        panel.grid = element_blank(), 
+        axis.text=element_blank(),
+        axis.ticks=element_blank(),
+        axis.title.y = element_blank(),
+      axis.title.x= element_blank(),
+        strip.background = element_rect(color="black", fill="white"),
+        strip.text =element_text(color="black", size=12),
+                               legend.text=element_text(size=12),
+     strip.text.y=element_text(angle=0),
+     strip.text.x=element_text(angle=0),
+   plot.title = element_text(hjust = 0.5, size=12),
+        legend.title=element_text(size=16) , 
+   legend.position = 'bottom')
+
+ # color mapped lifetime 
+ ex_color_mapped<- ggplot() + geom_tile(data=ex_mapped, aes(x=x,y=y), fill= ex_mapped$coul)+
+  facet_grid(.~media_sup)+
+   theme( plot.background = element_rect(fill="white", color="white"),
+        panel.background = element_rect(fill="white", color="white"),
+        panel.grid = element_blank(), 
+        axis.text=element_blank(),
+        axis.ticks=element_blank(),
+        axis.title.y = element_blank(),
+      axis.title.x= element_blank(),
+        strip.background = element_rect(color="black", fill="white"),
+        strip.text =element_text(color="black", size=12),
+                               legend.text=element_text(size=12),
+     strip.text.y=element_text(angle=0),
+     strip.text.x=element_text(angle=0),
+   plot.title = element_text(hjust = 0.5, size=12),
+        legend.title=element_text(size=12)) 
+ 
+
+ggplot() + geom_tile(data=ex_mapped , aes(x=g1,y=s1), fill=ex_mapped $coul)+
+  theme(legend.position='none')+
+  geom_path(data=subset(circle1, y>0),aes(x=x,y=y))+
+  facet_grid(.~media_sup)+
+  theme( plot.background = element_rect(fill="white", color="white"),
+        panel.background = element_rect(fill="white", color="black"),
+        panel.grid = element_blank(), 
+        axis.text=element_blank(),
+        axis.ticks=element_blank(),
+        axis.title.y = element_blank(),
+      axis.title.x= element_blank(),
+        strip.background = element_rect(color="black", fill="white"),
+        strip.text =element_text(color="black", size=12),
+                               legend.text=element_text(size=12),
+     strip.text.y=element_text(angle=0),
+     strip.text.x=element_text(angle=0),
+   plot.title = element_text(hjust = 0.5, size=12),
+        legend.title=element_text(size=12) ) 
+
+ex_asm_mapped <- subset(ex_mapped, media_sup=='ASM')
+
+ex_mapped_phasor <- ggplot() + geom_tile(data=ex_mapped, aes(x=g1,y=s1), fill=ex_mapped $coul)+
+  theme(legend.position='none')+
+  facet_grid(.~media_sup) + 
+  geom_path(data=subset(circle1, y>0),aes(x=x,y=y))+
+  theme( plot.background = element_rect(fill="white", color="white"),
+        panel.background = element_rect(fill="white", color="black"),
+        panel.grid = element_blank(),
+        panel.spacing = unit(6, "lines"), 
+        strip.background = element_rect(color="white", fill="white"),
+        strip.text =element_blank(),
+   plot.title = element_text(hjust = 0.5, size=16),
+        legend.title=element_text(size=14) , 
+           axis.text=element_text(color="black",size=12),
+        axis.ticks=element_blank(),
+        axis.title = element_text(color="black", size=12)) +
+      xlab(expression('G=M'%*%'cos('~phi~')'))+
+  ylab(expression('S=M'%*%'sin('~phi~')')) + 
+  geom_point( data = ref, aes(x=mean_g1, y=mean_s1, shape=object), fill="black", size=2)+
+  scale_shape_manual( values = shape_maps )+
+      scale_x_continuous(breaks=pretty_breaks(n=3))+
+  scale_y_continuous(breaks=pretty_breaks(n=3), limits = c(0,1))
+
+
+
+
+
+
+
+
+```
+
+```{r 2d distrubution tests}
+
+
+f_m9s = subset(all_binned, media_sup=='M9 suc' )[,c('binned_g1' , 'binned_s1' )]
+
+f_m9sup = subset(all_binned, media_sup=='M9 suc+sup' )[,c('binned_g1' , 'binned_s1' )]
+
+f_asm = subset(all_binned, media_sup=='ASM' )[,c('binned_g1' , 'binned_s1' )]
+
+# M9 s vs M9s sup
+fasano.franceschini.test(S1 = f_m9s, S2 = f_m9sup)
+
+# ASM vs M9 s
+fasano.franceschini.test(S1 = f_asm, S2 = f_m9s)
+
+# ASM vs M9 sup
+fasano.franceschini.test(S1 = f_asm, S2 = f_m9sup)
+
+
+```
+
+```{r mann whitney test}
+
+#levels(factor(all_binned$media_sup))
+#"ASM"        "M9 suc"     "M9 suc+sup"
+
+
+# M9 suc + sup is shifted to left of M9 suc
+#  one-sided alternative "greater" is that x is shifted to the right of y
+
+wilcox.test( y = unlist(subset(all_binned, media_sup == 'M9 suc')[,c('binned_g1')]),
+             x = unlist(subset(all_binned, media_sup == 'M9 suc+sup')[,c('binned_g1')]),
+             alternative = c('less'))
+  
+wilcox.test( y = unlist(subset(all_binned, media_sup == 'M9 suc')[,c('binned_s1')]),
+             x = unlist(subset(all_binned, media_sup == 'M9 suc+sup')[,c('binned_s1')]),
+             alternative = c('less'))
+
+# ASM vs M9 s
+#ASM is shifted to left of M9 s 
+wilcox.test( y = unlist(subset(all_binned, media_sup == 'M9 suc')[,c('binned_g1')]),
+             x = unlist(subset(all_binned, media_sup == 'ASM')[,c('binned_g1')]),
+             alternative = c('less'))
+  
+wilcox.test( y = unlist(subset(all_binned, media_sup == 'M9 suc')[,c('binned_s1')]),
+             x = unlist(subset(all_binned, media_sup == 'ASM')[,c('binned_s1')]),
+             alternative = c('less'))
+
+#M9s is shifted to left of ASM
+wilcox.test( x = unlist(subset(all_binned, media_sup == 'M9 suc')[,c('binned_g1')]),
+             y = unlist(subset(all_binned, media_sup == 'ASM')[,c('binned_g1')]),
+             alternative = c('less'))
+  
+wilcox.test( x = unlist(subset(all_binned, media_sup == 'M9 suc')[,c('binned_s1')]),
+             y = unlist(subset(all_binned, media_sup == 'ASM')[,c('binned_s1')]),
+             alternative = c('less'))
+
+
+# ASM vs M9 sup
+# M9 sup is shifted to left of ASM 
+wilcox.test( x = unlist(subset(all_binned, media_sup == 'M9 suc+sup')[,c('binned_g1')]),
+             y = unlist(subset(all_binned, media_sup == 'ASM')[,c('binned_g1')]),
+             alternative = c('less'))
+  
+wilcox.test( x = unlist(subset(all_binned, media_sup == 'M9 suc+sup')[,c('binned_s1')]),
+             y = unlist(subset(all_binned, media_sup == 'ASM')[,c('binned_s1')]),
+             alternative = c('less'))
+
+
+
+
+```
+
+```{r put it all together for fig 5}
+
+
+tablea<-textGrob(c("A"), gp=gpar(fontsize=40), vjust=c(-1,0), hjust=c(.5,0))
+tableb<-textGrob(c("B"), gp=gpar(fontsize=40), vjust=c(-1,0), hjust=c(.5,0))
+tablec<-textGrob(c("C"), gp=gpar(fontsize=40), vjust=c(-1,0), hjust=c(.5,0))
+
+panel_a <-arrangeGrob(tablea, 
+                      arrangeGrob(all_phasor, arrangeGrob(flim_gradient_legend, flim_shapes_legend, nrow=2), ncol=2, widths=c(5,1)), ncol=2, widths=c(1,12))
+
+
+
+
+panel_b <- arrangeGrob(tableb, ex_dc, ncol=2, widths=c(1,12))
+
+panel_c <- arrangeGrob(tablec, 
+                       arrangeGrob( ex_color_mapped, ex_mapped_phasor, nrow=2, heights=c(1.5,1)  ) , 
+              ncol =2 , widths=c(1,12))
+
+
+# put panels together in illustrator 
+
+ggsave(plot=panel_a,filename ="/Users/sltg/Documents/GitHub/PseudomonasFLIM/Output/Paper/Figures/fig5a_xfeed.eps", device ='eps', height=4, width=8 )
+
+ggsave(plot=all_g1_density,filename ="/Users/sltg/Documents/GitHub/PseudomonasFLIM/Output/Paper/Figures/fig5a_g1density_xfeed.eps", device ='eps', height=2, width=6 )
+
+ggsave(plot=all_s1_density,filename ="/Users/sltg/Documents/GitHub/PseudomonasFLIM/Output/Paper/Figures/fig5a_s1_density_xfeed.eps", device ='eps', height=6, width=2 )
+
+
+ggsave(plot=panel_b,filename ="/Users/sltg/Documents/GitHub/PseudomonasFLIM/Output/Paper/Figures/fig5b_xfeed.eps", device ='eps', height=3.6, width=8 )
+
+
+ggsave(plot=panel_c,filename ="/Users/sltg/Documents/GitHub/PseudomonasFLIM/Output/Paper/Figures/fig5c_xfeed.eps", device ='eps', height=4.7, width=8 )
+
+
+```

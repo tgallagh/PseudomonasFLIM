@@ -164,6 +164,36 @@ flimphasor<-ggplot()+  geom_segment(data=rbind(freeNADH, enzymeNADH), aes(x= 0.9
   scale_x_continuous(breaks=pretty_breaks(n=3))+
   scale_y_continuous(breaks=pretty_breaks(n=1))
 
+
+interpretphasor<-ggplot()+  geom_segment(data=rbind(freeNADH, enzymeNADH), aes(x= 0.9611449, y=0.1932496, xend= 0.2550519, yend=0.4358904), linetype="dotted")+
+  geom_path(data=subset(circle1, y>0),aes(x=x,y=y))+
+  geom_point(data = freeNADH, aes(x=g, y=s), color="#E69F00", size=6, shape=15)+
+  geom_point(data=enzymeNADH, aes(x=g,y=s), color="#56B4E9", size=6)+
+    geom_point(data=lifetime_example, aes(x=g-0.2,y=s+0.07), color="#009E73", size=8, shape=18)+
+    geom_point(data=lifetime_example, aes(x=g,y=s), color="#009E73", size=8, shape=17)+
+ # geom_text(data=circle,x=0.685, y=0.1932496-0.05, label=("FC"),size=9)+
+
+   theme( plot.background = element_rect(fill="white"),
+        panel.background = element_rect(fill="white", color="black"),
+        panel.grid = element_blank(),
+        axis.text.y  =element_text(color="black",size=16),
+        axis.text.x=element_text(color="black",size=16),
+        axis.ticks=element_blank(),
+        axis.title.y = element_text(color="black", size=16),
+      axis.title.x= element_text(color="black", size=16),
+        strip.background = element_rect(color="black", fill="white"),
+        strip.text =element_text(color="black", size=12),
+      legend.text=element_text(size=12),
+     strip.text.y=element_text(angle=0),
+     strip.text.x=element_text(angle=0),
+   plot.title = element_text(hjust = 0.5, size=12),
+        legend.title=element_text(size=12))+
+  xlab(expression('G=M'%*%'cos('~phi~')'))+
+  ylab(expression('S=M'%*%'sin('~phi~')'))+
+  scale_x_continuous(breaks=pretty_breaks(n=3))+
+  scale_y_continuous(breaks=pretty_breaks(n=1))
+
+
 freeNADH$object<-c("Species1")
 enzymeNADH$object<-c("Species2")
 freeNADH$FC<-c(0.25)
@@ -378,7 +408,11 @@ new_toppanel <-
     ncol = 2, widths = c(1,1)),  
   nrow = 2, heights = c(1,12) )
 
-ggsave(plot=new_toppanel, filename = "/Users/sltg/Documents/GitHub/PseudomonasFLIM/Output/Figures/fig1_schematic.eps", device='eps', height=4, width=10)
+ggsave(plot=FLIM_mod_phase, filename = "/Users/sltg/Documents/GitHub/PseudomonasFLIM/Output/Paper/Figures/fig1a_schematic.eps", device='eps', height=4, width=8)
+
+ggsave(plot=flimphasor, filename = "/Users/sltg/Documents/GitHub/PseudomonasFLIM/Output/Paper/Figures/fig1b_schematic.eps", device='eps', height=4, width=8)
+
+ggsave(plot=interpretphasor, filename = "/Users/sltg/Documents/GitHub/PseudomonasFLIM/Output/Paper/Figures/fig1c_schematic.eps", device='eps', height=4, width=8)
 
 
 

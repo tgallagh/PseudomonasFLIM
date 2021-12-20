@@ -221,7 +221,8 @@ color_map_1&lt;-c(
   &quot;OHPhz (Reduced)&quot; = &quot;#009e73&quot;, 
   &quot;FAD&quot; = &quot;#EE9B00&quot; , 
    &quot;CPX&quot; = &quot;#9B2226&quot; ,
-  &quot;Oxidized \n Lipid \n Signal&quot; = &quot;#f0e442&quot;)
+  &quot;OLS&quot; = &quot;#f0e442&quot; , 
+  &quot;PVD + Fe&quot; = &quot;#f0e442&quot; )
 
 color_map_2&lt;-c(
   &quot;Enzyme-bound NADH&quot;=&quot;#272727&quot;,
@@ -239,10 +240,10 @@ shape_maps&lt;-c(
    &quot;PVD&quot;=24,
   &quot;PYO&quot;=25 , 
   &quot;PYO (Reduced)&quot; = 25 , 
-  &quot;OHPhz (Reduced)&quot; = 21,
+  &quot;OHPhz (Reduced)&quot; = 23,
   &quot;FAD&quot; = 21 , 
   &quot;CPX&quot; = 22 ,
-  &quot;Oxidized \n Lipid \n Signal&quot; = 22)
+  &quot;OLS&quot; = 22)
 
 
 
@@ -279,8 +280,8 @@ freeNADH$object&lt;-c(&quot;Free NADH&quot;)
 
 oxlipid&lt;-phasorFun(80,7.8)
 
-oxlipid$object&lt;-c(&quot;Oxidized \n Lipid \n Signal&quot;)</code></pre>
-<pre class="r"><code>pixel_df &lt;- read.csv(file =  &#39;/Users/sltg/Documents/GitHub/PseudomonasFLIM/Data/Processed/df_fig2_flim.csv&#39;, header=T)
+oxlipid$object&lt;-c(&quot;OLS&quot;)</code></pre>
+<pre class="r"><code>pixel_df &lt;- read.csv(file =  &#39;/Users/sltg/Documents/GitHub/PseudomonasFLIM/Data/Processed/df_refs_flim.csv&#39;, header=T)
 
 
 #red_passive_pyo&lt;-data.frame(0.0289,0.145,&quot;&quot;)
@@ -300,9 +301,10 @@ pixel_df$singleton &lt;- ifelse(duplicated(pixel_df$info_concat) , &#39;no&#39;,
 
 # get object name 
 pixel_df$object &lt;- ifelse( grepl(pattern=&#39;NADH&#39;, x=pixel_df$FileName, ignore.case=TRUE), &quot;Free NADH&quot;,
-                           ifelse(grepl(pattern=&#39;PVD&#39;, x=pixel_df$FileName, ignore.case=TRUE), &quot;PVD&quot; ,
-                           ifelse( grepl(pattern = &#39;PYO&#39; , x=pixel_df$FileName, ignore.case=TRUE), &quot;PYO (Reduced)&quot;,
-                                   ifelse(  grepl(pattern = &#39;OHphz&#39; , x=pixel_df$FileName, ignore.case=TRUE), &quot;OHPhz (Reduced)&quot; , NA))))
+                           ifelse(grepl(pattern=&#39;pyoverdine_water&#39;, x=pixel_df$FileName, ignore.case=TRUE), &quot;PVD&quot; ,
+                                  ifelse(grepl(pattern=&#39;ferritin&#39;, x=pixel_df$FileName, ignore.case=TRUE), &quot;PVD + Fe&quot; ,
+                                      ifelse( grepl(pattern = &#39;PYO&#39; , x=pixel_df$FileName, ignore.case=TRUE), &quot;PYO (Reduced)&quot;,
+                                              ifelse(  grepl(pattern = &#39;OHphz&#39; , x=pixel_df$FileName, ignore.case=TRUE), &quot;OHPhz (Reduced)&quot; , NA)))))
                            
 # get mean 
 means &lt;- subset(pixel_df, singleton==&#39;no&#39; ) %&gt;%
@@ -318,12 +320,16 @@ flim_single_component&lt;-rbind(oxlipid, flim_single_component)
 pixel_df$object &lt;- ifelse(pixel_df$object == &quot;Enzyme-bound NADH&quot;, &quot;MDH NADH&quot;, pixel_df$object)
 flim_single_component$object &lt;- ifelse(flim_single_component$object == &quot;Enzyme-bound NADH&quot;, &quot;MDH NADH&quot;, flim_single_component$object)
 
+
+pixel_df &lt;- subset(pixel_df, object!=&quot;PVD + Fe&quot;)
+flim_single_component &lt;- subset(flim_single_component, object!=&quot;PVD + Fe&quot;)
+
 flim_pure&lt;-ggplot()+
   geom_bin2d(data=subset(pixel_df, singleton == &#39;no&#39;), aes(x=g1, y=s1), bins=180)+
   geom_path(data=subset(circle1, y&gt;0),aes(x=x,y=y))+
   geom_point(data = flim_single_component, aes(x=mean_g1, y=mean_s1, shape=object),color=&#39;black&#39;, size=4, 
              stroke=1,
-             fill = c(color_map_1[&#39;Oxidized \n Lipid \n Signal&#39;],
+             fill = c(color_map_1[&#39;OLS&#39;],
                     color_map_1[&#39;MDH NADH&#39;], 
                 color_map_1[&#39;Free NADH&#39;],
                       color_map_1[&#39;OHPhz (Reduced)&#39;], 
@@ -350,7 +356,7 @@ flim_pure&lt;-ggplot()+
   ylab(expression(&#39;S=M&#39;%*%&#39;sin(&#39;~phi~&#39;)&#39;))+
   scale_x_continuous(breaks=pretty_breaks(n=3))+
   scale_y_continuous(breaks=pretty_breaks(n=1), limits = c(0,1))+
-   scale_fill_gradientn( colors = rev(yellow_blue), trans=&#39;log10&#39;, &quot;Number \n of pixels&quot;)+
+   scale_fill_gradientn( colors = rev(yellow_blue), &quot;Number \n of pixels&quot;)+
   scale_shape_manual(values = shape_maps)
 
 gradient_only&lt;-ggplot()+
@@ -457,7 +463,7 @@ spectra_plot &lt;- ggplot() +
      strip.text.y=element_text(angle=0),
      strip.text.x=element_text(angle=0),
    plot.title = element_text(hjust = 0.5, size=12),
-   #legend.position = &quot;none&quot;,
+   legend.position = &quot;none&quot;,
    legend.background = element_rect(fill=&#39;white&#39;),
    legend.key = element_rect(fill=&#39;white&#39;),
         legend.title=element_blank() ) +
@@ -466,10 +472,16 @@ spectra_plot &lt;- ggplot() +
                           flim_pure_gradient_legend,
                            ncol=2, widths=c(3,1))
 
+
+spec_legend &lt;- arrangeGrob(spectra_plot, 
+                          flim_pure_shape_legend,
+                           ncol=2, widths=c(3,1))
+
+
 tablea&lt;-textGrob(c(&quot;A&quot;), gp=gpar(fontsize=40), vjust=c(-1,0), hjust=c(.5,0))
 tableb&lt;-textGrob(c(&quot;B&quot;), gp=gpar(fontsize=40), vjust=c(-1,0), hjust=c(.5,0))
 
-top_panel &lt;- arrangeGrob(tablea, spectra_plot, ncol=2, widths=c(1,12))
+top_panel &lt;- arrangeGrob(tablea, spec_legend, ncol=2, widths=c(1,12))
 bottom_panel &lt;- arrangeGrob(tableb, flim_legend, ncol=2, widths=c(1,12))
 
 figure2 &lt;- arrangeGrob(top_panel, bottom_panel, nrow=2)

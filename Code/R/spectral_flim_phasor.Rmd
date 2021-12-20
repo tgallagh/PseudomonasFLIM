@@ -34,14 +34,17 @@ circle1<- circleFun()
 
 
 color_map_1<-c(
-  "Enzyme-bound NADH"="#E9D8A6",
-  "MDH NADH"= "#E9D8A6", 
-  "Free NADH"= "#001219",
-   "PVD"="#CA6702",
-  "PYO"="#0A9396", 
-  "PYO (Reduced)" = "#0A9396",
+  "Enzyme-bound NADH"="#0072b2",
+  "MDH NADH"= "#0072b2", 
+  "Free NADH"= "#e69f00",
+   "PVD"="#d55e00",
+  "PYO"="#56b4e9", 
+  "PYO (Reduced)" = "#56b4e9",
+  "OHPhz (Reduced)" = "#009e73", 
   "FAD" = "#EE9B00" , 
-   "CPX" = "#9B2226")
+   "CPX" = "#9B2226" ,
+  "OLS" = "#f0e442" , 
+  "PVD + Fe" = "#f0e442" )
 
 color_map_2<-c(
   "Enzyme-bound NADH"="#272727",
@@ -59,8 +62,10 @@ shape_maps<-c(
    "PVD"=24,
   "PYO"=25 , 
   "PYO (Reduced)" = 25 , 
+  "OHPhz (Reduced)" = 23,
   "FAD" = 21 , 
-  "CPX" = 22 )
+  "CPX" = 22 ,
+  "OLS" = 22)
 
 
 
@@ -97,6 +102,9 @@ enzymeNADH$object<-c("Enzyme-bound NADH")
 freeNADH<-phasorFun(80,.37)
 freeNADH$object<-c("Free NADH")
 
+oxlipid<-phasorFun(80,7.8)
+
+oxlipid$object<-c("OLS")
 
 ```
 
@@ -105,7 +113,7 @@ freeNADH$object<-c("Free NADH")
 ```{r flim pixel data}
 
 
-pixel_df <- read.csv(file =  '/Users/sltg/Documents/GitHub/PseudomonasFLIM/Data/Processed/df_fig2_flim.csv', header=T)
+pixel_df <- read.csv(file =  '/Users/sltg/Documents/GitHub/PseudomonasFLIM/Data/Processed/df_refs_flim.csv', header=T)
 
 
 #red_passive_pyo<-data.frame(0.0289,0.145,"")
@@ -125,8 +133,10 @@ pixel_df$singleton <- ifelse(duplicated(pixel_df$info_concat) , 'no', 'yes' )
 
 # get object name 
 pixel_df$object <- ifelse( grepl(pattern='NADH', x=pixel_df$FileName, ignore.case=TRUE), "Free NADH",
-                           ifelse(grepl(pattern='PVD', x=pixel_df$FileName, ignore.case=TRUE), "PVD" ,
-                           ifelse( grepl(pattern = 'PYO' , x=pixel_df$FileName, ignore.case=TRUE), "PYO", NA)))
+                           ifelse(grepl(pattern='pyoverdine_water', x=pixel_df$FileName, ignore.case=TRUE), "PVD" ,
+                                  ifelse(grepl(pattern='ferritin', x=pixel_df$FileName, ignore.case=TRUE), "PVD + Fe" ,
+                                      ifelse( grepl(pattern = 'PYO' , x=pixel_df$FileName, ignore.case=TRUE), "PYO (Reduced)",
+                                              ifelse(  grepl(pattern = 'OHphz' , x=pixel_df$FileName, ignore.case=TRUE), "OHPhz (Reduced)" , NA)))))
                            
 # get mean 
 means <- subset(pixel_df, singleton=='no' ) %>%
@@ -136,21 +146,28 @@ means <- subset(pixel_df, singleton=='no' ) %>%
 
 means$lifetime <- c('unknown')
 flim_single_component<-rbind(enzymeNADH, means)
-
+flim_single_component<-rbind(oxlipid, flim_single_component)
 
 
 pixel_df$object <- ifelse(pixel_df$object == "Enzyme-bound NADH", "MDH NADH", pixel_df$object)
 flim_single_component$object <- ifelse(flim_single_component$object == "Enzyme-bound NADH", "MDH NADH", flim_single_component$object)
+
+
+pixel_df <- subset(pixel_df, object!="PVD + Fe")
+flim_single_component <- subset(flim_single_component, object!="PVD + Fe")
 
 flim_pure<-ggplot()+
   geom_bin2d(data=subset(pixel_df, singleton == 'no'), aes(x=g1, y=s1), bins=180)+
   geom_path(data=subset(circle1, y>0),aes(x=x,y=y))+
   geom_point(data = flim_single_component, aes(x=mean_g1, y=mean_s1, shape=object),color='black', size=4, 
              stroke=1,
-             fill = c(color_map_1['MDH NADH'], 
-                      color_map_1['Free NADH'], 
+             fill = c(color_map_1['OLS'],
+                    color_map_1['MDH NADH'], 
+                color_map_1['Free NADH'],
+                      color_map_1['OHPhz (Reduced)'], 
                       color_map_1['PVD'], 
-                      color_map_1['PYO']))+
+                      color_map_1['PYO']
+                      ))+
   #scale_fill_manual( values = yellow_blue) +
   theme( plot.background = element_rect(fill="white", color="white"),
         panel.background = element_rect(fill="white", color="black"),
@@ -171,7 +188,7 @@ flim_pure<-ggplot()+
   ylab(expression('S=M'%*%'sin('~phi~')'))+
   scale_x_continuous(breaks=pretty_breaks(n=3))+
   scale_y_continuous(breaks=pretty_breaks(n=1), limits = c(0,1))+
-   scale_fill_gradientn( colors = rev(yellow_blue), trans='log10', "Number \n of pixels")+
+   scale_fill_gradientn( colors = rev(yellow_blue), "Number \n of pixels")+
   scale_shape_manual(values = shape_maps)
 
 gradient_only<-ggplot()+
@@ -246,13 +263,29 @@ spectra <- read.csv( file= '/Users/sltg/Documents/GitHub/PseudomonasFLIM/Data/Pr
 semrock <- read.csv( file= '/Users/sltg/Documents/GitHub/PseudomonasFLIM/Data/Processed/df_fig2_semrock.csv' )
 
 # dont use oh phz since non reproducible data
-spectra <- subset(spectra, Sample!= "Reduced OHPhz")
+#spectra <- subset(spectra, Sample!= "Reduced OHPhz")
 
 spectra$Sample <- ifelse( spectra$Sample ==  'Reduced PYO', 'PYO (Reduced)' , spectra$Sample )
 
-spectra <- ggplot() +
-    geom_line(data = spectra, aes(x=Wavelength, y=Normalized, color=Sample ), size=1) +
-  geom_point(data = spectra, aes(x=Wavelength, y=Normalized, fill=Sample, shape= Sample), size=2) +
+ohphz <- read.csv( file = '/Users/sltg/Documents/GitHub/PseudomonasFLIM/Data/Processed/df_ohphz_spectra.csv' )
+ggplot() + geom_line(data = ohphz, aes(x=Wavelength, y=Intensity, color=FileName))
+ggplot() + geom_line(data = subset(ohphz, FileName!='hydrozyphenazine_reduced100uMslide_740nm20x5na473_697nm_10nmres_73p_25uspixd_13um_t1_l624.lsm') , aes(x=Wavelength, y=Intensity, color=FileName))
+
+ggplot() + geom_line(data = subset(ohphz, FileName!='hydrozyphenazine_reduced100uMslide_740nm20x5na473_697nm_10nmres_62p_25uspixd_13um_t1_l624.lsm' & FileName!= 'hydrozyphenazine_reduced100uMslide_740nm20x5na473_697nm_10nmres_73p_25uspixd_13um_t1_l624.lsm' & FileName!= 'Old_OHPhz_TCEP_10p_25xW08NA_740nm_410_695_8_9nmsteps.lsm') , aes(x=Wavelength, y=Intensity, color=FileName))
+
+
+ohphz_subset <- subset(ohphz, FileName == 'OHPhz_DTT_10p_25xW08NA_740nm_410_695_8_9nmsteps.lsm')
+ohphz_subset$Sample <- ("OHPhz (Reduced)")
+
+spectra <- rbind(spectra, ohphz_subset)
+
+spectra_subset <- subset(spectra, Sample!='CPX' & Sample!='FAD' & Sample!='Reduced OHPhz')
+
+
+spectra_plot <- ggplot() +
+  geom_rect(mapping=aes(xmin=400, xmax=500, ymin=0, ymax=1), fill="#DCDCDC")  + 
+    geom_line(data = spectra_subset, aes(x=Wavelength, y=Normalized, color=Sample ), size=1) +
+  geom_point(data = spectra_subset, aes(x=Wavelength, y=Normalized, fill=Sample, shape= Sample), size=2) +
   scale_fill_manual( values = color_map_1) + 
   scale_shape_manual( values = shape_maps ) +
   scale_color_manual( values = color_map_1  ) + 
@@ -269,7 +302,7 @@ spectra <- ggplot() +
      strip.text.y=element_text(angle=0),
      strip.text.x=element_text(angle=0),
    plot.title = element_text(hjust = 0.5, size=12),
-   #legend.position = "none",
+   legend.position = "none",
    legend.background = element_rect(fill='white'),
    legend.key = element_rect(fill='white'),
         legend.title=element_blank() ) +
@@ -283,17 +316,23 @@ spectra <- ggplot() +
 ```{r all together for fig 2}
 
 flim_legend <- arrangeGrob(flim_pure, 
-                           arrangeGrob( flim_pure_shape_legend, flim_pure_gradient_legend, nrow=2 ),
-                           ncol=2, widths=c(4,1))
+                          flim_pure_gradient_legend,
+                           ncol=2, widths=c(3,1))
+
+
+spec_legend <- arrangeGrob(spectra_plot, 
+                          flim_pure_shape_legend,
+                           ncol=2, widths=c(3,1))
+
 
 tablea<-textGrob(c("A"), gp=gpar(fontsize=40), vjust=c(-1,0), hjust=c(.5,0))
 tableb<-textGrob(c("B"), gp=gpar(fontsize=40), vjust=c(-1,0), hjust=c(.5,0))
 
-top_panel <- arrangeGrob(tablea, spectra, ncol=2, widths=c(1,12))
+top_panel <- arrangeGrob(tablea, spec_legend, ncol=2, widths=c(1,12))
 bottom_panel <- arrangeGrob(tableb, flim_legend, ncol=2, widths=c(1,12))
 
 figure2 <- arrangeGrob(top_panel, bottom_panel, nrow=2)
 
-ggsave(plot=figure2,filename ="/Users/sltg/Documents/GitHub/PseudomonasFLIM/Output/Paper/Figures/fig2_spectra_phasor.eps", device ='eps', height=7, width=7 )
+ggsave(plot=figure2,filename ="/Users/sltg/Documents/GitHub/PseudomonasFLIM/Output/Paper/Figures/fig2_spectra_phasor.eps", device ='eps', height=8, width=8 )
 
 ```

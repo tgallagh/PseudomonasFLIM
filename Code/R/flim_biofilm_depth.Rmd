@@ -91,7 +91,9 @@ green_red_1 <- c("#90BE6D" , "#F9C74F", "#F8961E", "#F3722C" ,  "#F94144")
 green_red <- c("#90BE6D" , "#F9C74F",  "#F94144")
 blue_yellow_orange <- c("#3BCFD4", "#D7FC05", "#EC6E20")
 purple_green <- c('#7C65A9' ,"#96D4CA") 
-blue_green_orange <- c("#0088FF" ,"#5BCA7A" ,  "#FF6200")
+#
+blue_green_orange <- c("#0088FF" , "#5BCA7A", "#FF6200" )
+
 white_black <- c("#F8F8FF", "#CAC9CD" ,  "#9B9A9C" , "#6D6A6A" , "#3E3B39" , "#100C07" )
 
 # depth
@@ -305,3 +307,223 @@ ggsave(plot=figure3,filename ="/Users/Tara/Documents/GitHub/PseudomonasFLIM/Outp
 
 ```
 
+
+```{r example images}
+
+# ASM phz ko = plate 2
+
+# ASM WT = plate 1 
+# 20p_0d000$CG0T_0-1__ch1_h1_h2.R64
+# 49p_500d501$CG0T_0-1__ch1_h1_h2.R64
+# 59p_1000d001$CG0T_0-1__ch1_h1_h2.R64
+
+# M9 succinate ko = plate 1 
+# 10p_0d000$CG0T_0-1__ch1_h1_h2.R64
+# 34p_500d501$CG0T_0-1__ch1_h1_h2.R64
+# 40p_1000d001$CG0T_0-1__ch1_h1_h2.R64
+
+# WT M9 succinate 
+# 11p_0d000$CG0T_0-1__ch1_h1_h2.R64
+# 34p_500d501$CG0T_0-1__ch1_h1_h2.R64
+# 39p_1000d001$CG0T_0-1__ch1_h1_h2.R64
+
+# example images
+biofilm_ex <- subset(biofilm, plate == 'plate1' & (
+  depth == 0 | depth == 1000
+) )
+
+# use different plate for phz ko asm
+biofilm_ex <- subset(biofilm_ex, FileName!="/Users/sltg/Documents/GitHub/PseudomonasFLIM/Data/FLIM/biofilm/phzko_ASM/plate1/60p_900d901$CG0T_0-1__ch1_h1_h2.R64")
+
+biofilm_ex <- subset(biofilm_ex, FileName!="/Users/sltg/Documents/GitHub/PseudomonasFLIM/Data/FLIM/biofilm/phzko_ASM/plate1/15p_0d000$CG0T_0-1__ch1_h1_h2.R64")
+
+
+biofilm_ex <- rbind(biofilm_ex, subset(biofilm,  strain=="Δphz" & media=="ASM" & plate=="plate3"  & c(
+  depth == 0 | depth == 1000
+) ) ) 
+
+### top vs bottom
+biofilm_ex$depth_ex <- ifelse(biofilm_ex$depth == "0", 'surface',
+                               ifelse(biofilm_ex$depth == "1000", 'bottom', NA))
+
+
+```
+
+
+```{r example images intensity plot }
+
+# normalize intensity 
+biofilm_ex <- biofilm_ex %>% group_by( media, strain, depth ) %>%
+  mutate(norm_dc = log10(dc+1)/max(log10(dc+1)) )
+
+biofilm_ex$depth_ex <- factor(biofilm_ex$depth_ex, levels = c('surface', 'bottom'))
+
+biofilm_ex_dc <- ggplot() + geom_tile(data=biofilm_ex, aes(x=x,y=y, fill=norm_dc))+
+facet_grid(depth_ex ~ strain + media ) + 
+scale_fill_gradientn( colours = rev(white_black), trans="log10", "Fluorescent \n intensity")+
+   theme( plot.background = element_rect(fill="white", color="white"),
+        panel.background = element_rect(fill="white", color="white"),
+                plot.margin = margin(0,0,0,0 , "cm"), 
+        panel.grid = element_blank(), 
+        axis.text=element_text(color = "white", size=12),
+        axis.ticks=element_blank(),
+        axis.title = element_text(color="white", size=12),
+        strip.background = element_rect(color="black", fill="white"),
+        strip.text =element_text(color="black", size=12),
+     strip.text.y=element_text(angle=0),
+     strip.text.x=element_text(angle=0),
+   plot.title = element_text(hjust = 0.5, size=12),
+        legend.title=element_text(size=12, color="black") , 
+   legend.text=element_text(color="black", size=12),
+   legend.margin=margin(-1,0,0,0, "cm"),
+   legend.position = 'bottom')
+   
+```
+
+
+```{r flim phasor color mapping } 
+
+### bin data 
+get_binned_data <- function(df) {
+   ex_plot <- ggplot() + geom_bin2d(data = df , aes(x=g1,y=s1, color=dc), bins=250)+
+  geom_path(data=subset(circle1, y>0),aes(x=x,y=y)) 
+  
+  # extract binned data
+ex_binned_data <- ggplot_build( ex_plot )$data[[1]]
+
+colnames(ex_binned_data)[c(5,6)] <- c('binned_g1' , 'binned_s1')
+
+ex_binned_data <- ex_binned_data[order(ex_binned_data$binned_g1+1 * ex_binned_data$binned_s1+1 ),]
+
+  }
+
+ex_binned_data <- biofilm_ex %>% group_by(FileName, strain, media) %>%
+  group_modify( ~ get_binned_data(.x) )
+
+
+### assign colors to bins
+ex_binned_data <- data.frame(ex_binned_data)
+
+ex_binned_data <- ex_binned_data[order( (ex_binned_data$binned_g1 * ex_binned_data$binned_s1 )),]
+
+# color for each bin
+coul <- colorRampPalette( colors =  c(blue_green_orange))(nrow(ex_binned_data))
+
+ex_binned_data <- cbind( ex_binned_data , coul)
+
+
+### map colors back to bins
+ex_mapped <- data.frame()
+
+for (file in levels(factor(ex_binned_data$FileName)) ) {
+  print(file)
+  biofilm_sub <- subset(biofilm_ex, FileName == file )
+  binned_sub <- subset(ex_binned_data, FileName == file)
+  
+  setDT(biofilm_sub)
+  setDT(binned_sub)
+  
+# map binned data colors back onto all ~63,000 pixels
+  mapped_sub <- biofilm_sub[binned_sub, on = .(g1 >= xmin , g1 <= xmax,             
+                           s1 >= ymin , s1 <= ymax), nomatch = NA, 
+             .(g1, s1, dc, xmin, xmax, ymin, ymax, coul, x,y, FileName,  strain, media, depth, depth_ex, binned_g1,binned_s1)] 
+  
+  # append
+  ex_mapped <- rbind(ex_mapped, mapped_sub)
+  }
+
+
+ex_mapped$depth_ex <- factor(ex_mapped$depth_ex, levels = c('surface' , 'bottom'))
+
+```
+
+```{r example images flim color map}
+
+# subset bottom and surface data
+#surface <- subset(ex_mapped, depth_ex == "surface")
+# bottom <- subset(ex_mapped, depth_ex == "bottom")
+
+# color mapped lifetime 
+ ex_color_mapped<- ggplot() + geom_tile(data=ex_mapped, aes(x=x,y=y), fill= ex_mapped$coul)+
+  facet_grid(depth_ex ~ strain + media ) + 
+   theme( plot.background = element_rect(fill="white", color="white"),
+        panel.background = element_rect(fill="white", color="white"),
+                              plot.margin = margin(0,0,-0.3,0 , "cm"), 
+        panel.grid = element_blank(), 
+        axis.text=element_text(color="white", size=12),
+        axis.ticks=element_blank(),
+        axis.title = element_text(color="white",size=12),
+        strip.background = element_rect(color="black", fill="white"),
+        strip.text =element_text(color="black", size=12),
+                               legend.text=element_text(size=12),
+     strip.text.y=element_text(angle=0),
+     strip.text.x=element_text(angle=0),
+   plot.title = element_text(hjust = 0.5, size=12),
+        legend.title=element_text(size=12)) 
+ 
+ 
+```
+
+
+```{r phasor}
+
+ex_mapped_phasor <- ggplot() + geom_point(data=ex_mapped, aes(x=g1,y=s1), color = ex_mapped$coul, size=0.1)+
+   geom_path(data=subset(circle1, y>0),aes(x=x,y=y))+
+    facet_grid(depth_ex ~ strain + media )  + 
+        scale_x_continuous(breaks=pretty_breaks(n=3))+
+  scale_y_continuous(breaks=pretty_breaks(n=3), limits = c(0,1)) +
+      xlab(expression('G=M'%*%'cos('~phi~')'))+
+  ylab(expression('S=M'%*%'sin('~phi~')')) + 
+  geom_point( data = ref, aes(x=mean_g1, y=mean_s1, shape=object), fill="black", size=2)+ 
+ theme( plot.background = element_rect(fill="white", color="white"),
+                plot.margin = margin(0,0,0,0 , "cm"), 
+        panel.background = element_rect(fill="white", color="black"),
+        panel.grid = element_blank(), 
+        axis.text=element_text(color="black", size=12),
+        axis.ticks=element_blank(),
+        axis.title = element_text(color="black", size=12), 
+        strip.background = element_rect(color="black", fill="white"),
+                               legend.text=element_text(size=12),
+        strip.text.x = element_text(color='black', size=12, angle = 0), 
+ strip.text.y = element_text(color='black', size=12, angle = 0), 
+
+        legend.position = 'none', 
+   plot.title = element_text(hjust = 0.5, size=12),
+        legend.title=element_text(size=16))+
+      xlab(expression('G=M'%*%'cos('~phi~')'))+
+  ylab(expression('S=M'%*%'sin('~phi~')'))+
+  scale_shape_manual(values = shape_maps)
+
+
+```
+
+```{r}
+
+
+
+tablea<-textGrob(c("A"), gp=gpar(fontsize=40), vjust=c(-1,0), hjust=c(.5,0))
+tableb<-textGrob(c("B"), gp=gpar(fontsize=40), vjust=c(-1,0), hjust=c(.5,0))
+tablec<-textGrob(c("C"), gp=gpar(fontsize=40), vjust=c(-1,0), hjust=c(.5,0))
+
+panel_a <- arrangeGrob(tablea, biofilm_ex_dc, ncol=2, widths=c(1,12))
+
+panel_b <- arrangeGrob(tableb, ex_color_mapped, ncol=2, widths=c(1,12))
+
+panel_c <- arrangeGrob(tablec, ex_mapped_phasor, ncol=2, widths=c(1,12))
+
+
+#1.3 / 2 
+fig4 <- arrangeGrob(panel_a, panel_b, panel_c, heights=c(1.5,1.3,1))
+
+
+# 9/6.5 = 1.38
+# 
+
+ggsave(plot=fig4,filename ="/Users/Tara/Documents/GitHub/PseudomonasFLIM/Output/Paper/Figures/fig4.jpeg", device ='jpeg', height=9, width=6.5 )
+
+
+
+ggsave(plot=fig4,filename ="/Users/Tara/Documents/GitHub/PseudomonasFLIM/Output/Paper/Figures/fig4.eps", device ='eps', height=8, width=6 )
+
+
+```

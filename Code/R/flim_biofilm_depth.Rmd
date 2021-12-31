@@ -470,13 +470,13 @@ ex_mapped$depth_ex <- factor(ex_mapped$depth_ex, levels = c('surface' , 'bottom'
 ex_mapped_phasor <- ggplot() + geom_point(data=ex_mapped, aes(x=g1,y=s1), color = ex_mapped$coul, size=0.1)+
    geom_path(data=subset(circle1, y>0),aes(x=x,y=y))+
     facet_grid(depth_ex ~ strain + media )  + 
-        scale_x_continuous(breaks=pretty_breaks(n=3))+
-  scale_y_continuous(breaks=pretty_breaks(n=3), limits = c(0,1)) +
+        scale_x_continuous(breaks=pretty_breaks(n=2))+
+  scale_y_continuous(breaks=pretty_breaks(n=2), limits = c(0,1)) +
       xlab(expression('G=M'%*%'cos('~phi~')'))+
   ylab(expression('S=M'%*%'sin('~phi~')')) + 
-  geom_point( data = ref, aes(x=mean_g1, y=mean_s1, shape=object), fill="black", size=2)+ 
+  geom_point( data = ref, aes(x=mean_g1, y=mean_s1, shape=object), fill="black", size=1)+ 
  theme( plot.background = element_rect(fill="white", color="white"),
-                plot.margin = margin(0,0,0,0 , "cm"), 
+                plot.margin = margin(-0.3,0,0,0 , "cm"), 
         panel.background = element_rect(fill="white", color="black"),
         panel.grid = element_blank(), 
         axis.text=element_text(color="black", size=12),
@@ -506,24 +506,16 @@ tableb<-textGrob(c("B"), gp=gpar(fontsize=40), vjust=c(-1,0), hjust=c(.5,0))
 tablec<-textGrob(c("C"), gp=gpar(fontsize=40), vjust=c(-1,0), hjust=c(.5,0))
 
 panel_a <- arrangeGrob(tablea, biofilm_ex_dc, ncol=2, widths=c(1,12))
-
 panel_b <- arrangeGrob(tableb, ex_color_mapped, ncol=2, widths=c(1,12))
-
 panel_c <- arrangeGrob(tablec, ex_mapped_phasor, ncol=2, widths=c(1,12))
 
-
-#1.3 / 2 
-fig4 <- arrangeGrob(panel_a, panel_b, panel_c, heights=c(1.5,1.3,1))
+fig4 <- arrangeGrob(panel_a, panel_b, panel_c, heights=c(1.145,1,1))
 
 
-# 9/6.5 = 1.38
-# 
-
-ggsave(plot=fig4,filename ="/Users/Tara/Documents/GitHub/PseudomonasFLIM/Output/Paper/Figures/fig4.jpeg", device ='jpeg', height=9, width=6.5 )
+ggsave(plot=fig4,filename ="/Users/Tara/Documents/GitHub/PseudomonasFLIM/Output/Paper/Figures/fig4.jpeg", device ='jpeg', height= 8.64, width= 5.8)
 
 
-
-ggsave(plot=fig4,filename ="/Users/Tara/Documents/GitHub/PseudomonasFLIM/Output/Paper/Figures/fig4.eps", device ='eps', height=8, width=6 )
+ggsave(plot=fig4,filename ="/Users/Tara/Documents/GitHub/PseudomonasFLIM/Output/Paper/Figures/fig4.eps", device ='eps', height=8.4 , width=6 )
 
 
 ```

@@ -64,7 +64,7 @@ shape_maps<-c(
   "OHPhz (Reduced)" = 23,
   "FAD" = 21 , 
   "CPX" = 22 ,
-  "OLS" = 22)
+  "OLS" = 8 )
 
 
 # media color maps
@@ -266,6 +266,8 @@ filename_means <- all_binned %>% group_by( FileName, media_sup ) %>%
             std_s1=sd(y))
 
 
+all_means$media_sup_label <- ifelse(all_means$media_sup == "M9 suc+sup", paste("M9 suc + \n" , c(expression(italic("Rothia"))), "sup"), all_means$media_sup)
+
 all_phasor <- ggplot()+
   geom_bin2d(data = all_asm, aes(x=g1, y = s1), bins=250) + 
   geom_bin2d(data = all_m9s, aes(x=g1, y = s1), bins=250) + 
@@ -289,17 +291,16 @@ all_phasor <- ggplot()+
   theme( plot.background = element_rect(fill="white", color="white"),
         panel.background = element_rect(fill="white", color="black"),
         panel.grid = element_blank(), 
-        axis.text=element_text(color="black",size=12),
+        axis.text=element_text(color="black",size=14),
         axis.ticks=element_blank(),
-        axis.title.y = element_text(color="black", size=12),
-      axis.title.x= element_text(color="black", size=12),
+        axis.title.y = element_text(color="black", size=14),
+      axis.title.x= element_text(color="black", size=14),
         strip.background = element_rect(color="black", fill="white"),
         strip.text =element_text(color="black", size=12),
                                legend.text=element_text(size=10),
      strip.text.y=element_text(angle=0),
      strip.text.x=element_text(angle=0),
-   plot.title = element_text(hjust = 0.5, size=12),
-        legend.title=element_text(size=10) ,
+   plot.title = element_text(hjust = 0.5, size=12) ,
    legend.background = element_rect(color='white' , fill='white'),
    legend.position='none',
    legend.key = element_rect(color='white', fill='white')) +
@@ -326,11 +327,11 @@ gradient_only<-ggplot()+
       axis.title.x= element_text(color="black", size=12),
         strip.background = element_rect(color="black", fill="white"),
         strip.text =element_text(color="black", size=12),
-                               legend.text=element_text(size=10),
+                               legend.text=element_text(size=14),
      strip.text.y=element_text(angle=0),
      strip.text.x=element_text(angle=0),
    plot.title = element_text(hjust = 0.5, size=12),
-        legend.title=element_text(size=10) ,
+        legend.title=element_text(size=14) ,
    legend.background = element_rect(color='white' , fill='white'),
    legend.key = element_rect(color='white', fill='white')) +
     xlab(expression('G=M'%*%'cos('~phi~')'))+
@@ -343,7 +344,7 @@ gradient_only<-ggplot()+
 flim_gradient_legend <- cowplot::get_legend(gradient_only)
 
 shapes_only<-ggplot()+
-  geom_point(data = all_means, aes(x=mean_g1, y = mean_s1 , shape = media_sup,fill=media_sup),
+  geom_point(data = all_means, aes(x=mean_g1, y = mean_s1 , shape = media_sup ,fill=media_sup ),
              size=4)+
   theme( plot.background = element_rect(fill="white", color="white"),
         panel.background = element_rect(fill="white", color="black"),
@@ -354,11 +355,12 @@ shapes_only<-ggplot()+
       axis.title.x= element_text(color="black", size=12),
         strip.background = element_rect(color="black", fill="white"),
         strip.text =element_text(color="black", size=12),
-                               legend.text=element_text(size=10),
+                               legend.text=element_text(size=14),
      strip.text.y=element_text(angle=0),
      strip.text.x=element_text(angle=0),
    plot.title = element_text(hjust = 0.5, size=12),
-        legend.title=element_text(size=10) ,
+        legend.title=element_blank() ,
+   legend.text.align = 0,
    legend.background = element_rect(color='white' , fill='white'),
    legend.key = element_rect(color='white', fill='white')) +
     xlab(expression('G=M'%*%'cos('~phi~')'))+
@@ -366,9 +368,9 @@ shapes_only<-ggplot()+
     geom_path(data=subset(circle1, y>0),aes(x=x,y=y))+
     scale_x_continuous(breaks=pretty_breaks(n=3))+
   scale_y_continuous(breaks=pretty_breaks(n=1), limits = c(0,1))+
-  scale_shape_manual( values = media_shapes  , "Media")+
-  scale_fill_manual(values =media_colors, "Media")
-
+  scale_shape_manual( values = media_shapes  , labels = c("ASM", "M9", expression('M9'+italic("Rothia")~'sup')))+
+  scale_fill_manual(values =media_colors, labels = c("ASM", "M9", expression('M9'+italic("Rothia")~'sup')) ) +
+  guides( label.position = "right")
 
 flim_shapes_legend <- cowplot::get_legend(shapes_only)
 
@@ -378,9 +380,9 @@ all_g1_density <- ggplot() + geom_density(data = all, aes(x = g1, fill=media_sup
    theme( plot.background = element_rect(fill="white", color="white"),
         panel.background = element_rect(fill="white", color="black"),
         panel.grid = element_blank(), 
-        axis.text=element_text(color="black",size=12),
+        axis.text=element_text(color="black",size=14),
         axis.ticks=element_blank(),
-        axis.title.y = element_text(color="black", size=12),
+        axis.title.y = element_text(color="black", size=14),
       axis.title.x= element_blank(),
         strip.background = element_rect(color="black", fill="white"),
         strip.text =element_text(color="black", size=12),
@@ -400,9 +402,9 @@ all_s1_density<- ggplot() + geom_density(data = all, aes(x = s1, fill=media_sup,
    theme( plot.background = element_rect(fill="white", color="white"),
         panel.background = element_rect(fill="white", color="black"),
         panel.grid = element_blank(), 
-        axis.text=element_text(color="black",size=12),
+        axis.text=element_text(color="black",size=14),
         axis.ticks=element_blank(),
-        axis.title.x = element_text(color="black", size=12),
+        axis.title.x = element_text(color="black", size=14),
       axis.title.y = element_blank(),
         strip.background = element_rect(color="black", fill="white"),
         strip.text =element_text(color="black", size=12),
@@ -646,11 +648,9 @@ tablea<-textGrob(c("A"), gp=gpar(fontsize=40), vjust=c(-1,0), hjust=c(.5,0))
 tableb<-textGrob(c("B"), gp=gpar(fontsize=40), vjust=c(-1,0), hjust=c(.5,0))
 tablec<-textGrob(c("C"), gp=gpar(fontsize=40), vjust=c(-1,0), hjust=c(.5,0))
 
-panel_a <-arrangeGrob(tablea, 
-                      arrangeGrob(all_phasor, arrangeGrob(flim_gradient_legend, flim_shapes_legend, nrow=2), ncol=2, widths=c(5,1)), ncol=2, widths=c(1,12))
+panel_a_legends<-arrangeGrob(flim_gradient_legend, flim_shapes_legend, nrow=2)
 
-
-
+panel_a <-arrangeGrob(tablea, all_phasor, ncol=2, widths=c(1,12) )
 
 panel_b <- arrangeGrob(tableb, ex_dc, ncol=2, widths=c(1,12))
 
@@ -661,17 +661,19 @@ panel_c <- arrangeGrob(tablec,
 
 # put panels together in illustrator 
 
-ggsave(plot=panel_a,filename ="/Users/sltg/Documents/GitHub/PseudomonasFLIM/Output/Paper/Figures/fig5a_xfeed.eps", device ='eps', height=4, width=8 )
+ggsave(plot=panel_a,filename ="/Users/sltg/Documents/GitHub/PseudomonasFLIM/Output/Paper/Figures/fig5a_xfeed.eps", device ='eps', height=2.5, width=6/1.6 )
 
-ggsave(plot=all_g1_density,filename ="/Users/sltg/Documents/GitHub/PseudomonasFLIM/Output/Paper/Figures/fig5a_g1density_xfeed.eps", device ='eps', height=2, width=6 )
+ggsave(plot=panel_a_legends,filename ="/Users/sltg/Documents/GitHub/PseudomonasFLIM/Output/Paper/Figures/fig5a_xfeed_legends.eps", device ='eps', height=4, width=2 )
 
-ggsave(plot=all_s1_density,filename ="/Users/sltg/Documents/GitHub/PseudomonasFLIM/Output/Paper/Figures/fig5a_s1_density_xfeed.eps", device ='eps', height=6, width=2 )
+ggsave(plot=all_g1_density,filename ="/Users/sltg/Documents/GitHub/PseudomonasFLIM/Output/Paper/Figures/fig5a_g1density_xfeed.eps", device ='eps', height=2/1.6, width=6/1.6 )
+
+ggsave(plot=all_s1_density,filename ="/Users/sltg/Documents/GitHub/PseudomonasFLIM/Output/Paper/Figures/fig5a_s1_density_xfeed.eps", device ='eps', height=6/1.6, width=2/1.6)
 
 
-ggsave(plot=panel_b,filename ="/Users/sltg/Documents/GitHub/PseudomonasFLIM/Output/Paper/Figures/fig5b_xfeed.eps", device ='eps', height=3.6, width=8 )
+ggsave(plot=panel_b,filename ="/Users/sltg/Documents/GitHub/PseudomonasFLIM/Output/Paper/Figures/fig5b_xfeed.eps", device ='eps', height=3.6/1.33, width=8/1.6 )
 
 
-ggsave(plot=panel_c,filename ="/Users/sltg/Documents/GitHub/PseudomonasFLIM/Output/Paper/Figures/fig5c_xfeed.eps", device ='eps', height=4.7, width=8 )
+ggsave(plot=panel_c,filename ="/Users/sltg/Documents/GitHub/PseudomonasFLIM/Output/Paper/Figures/fig5c_xfeed.eps", device ='eps', height=4.7/1.5, width=8/1.6)
 
 
 ggsave(plot=blue_orange_legend,filename ="/Users/sltg/Documents/GitHub/PseudomonasFLIM/Output/Paper/Figures/fig5c_legend.eps", device ='eps', height=1, width=4 )

@@ -62,7 +62,7 @@ shape_maps<-c(
   "OHPhz (Reduced)" = 21,
   "FAD" = 21 , 
   "CPX" = 22 ,
-  "OLS" = 22)
+  "OLS" = 8)
 
 
 # media color maps
@@ -106,11 +106,11 @@ depth_lines <- c("solid", "dotted", "dashed", "longdash", "solid", "dotted", "da
 
 ```{r paths and data}
 # reference means 
-ref <- read.csv( file = "/Users/Tara//Documents/GitHub/PseudomonasFLIM/Data/Processed/ref_flim_means.csv")
+ref <- read.csv( file = "/Users/sltg//Documents/GitHub/PseudomonasFLIM/Data/Processed/ref_flim_means.csv")
 
 # biofilm depth data
 # g and s data
-biofilm <- read.csv(file =  '/Users/Tara/Documents/GitHub/PseudomonasFLIM/Data/Processed/df_biofilm_flim.csv', header=T)
+biofilm <- read.csv(file =  '/Users/sltg/Documents/GitHub/PseudomonasFLIM/Data/Processed/df_biofilm_flim.csv', header=T)
 
 ```
 
@@ -129,7 +129,7 @@ phasorFun <- function(omega,time){
 
 enzymeNADH<-phasorFun(80,3.2)
 phasorFun(80,10)
-enzymeNADH$object<-c("Enzyme-bound NADH")
+enzymeNADH$object<-c("MDH NADH")
 
 oxlipid<-phasorFun(80,7.8)
 
@@ -137,6 +137,7 @@ oxlipid$object<-c("OLS")
 
 ref <- rbind(ref, enzymeNADH)
 ref <- rbind(ref, oxlipid)
+
 
 ```
 
@@ -196,9 +197,9 @@ biofilm_phasor <- ggplot() +
     xlab(expression('G=M'%*%'cos('~phi~')'))+
   ylab(expression('S=M'%*%'sin('~phi~')'))+
     geom_path(data=subset(circle1, y>0),aes(x=x,y=y))+
-  scale_x_continuous(breaks=pretty_breaks(n=3))+
-  scale_y_continuous(breaks=pretty_breaks(n=3), limits = c(0,1))+
-  geom_point( data = ref, aes(x=mean_g1, y=mean_s1, shape=object), fill="black", size=3)+
+  scale_x_continuous(breaks=pretty_breaks(n=1))+
+  scale_y_continuous(breaks=pretty_breaks(n=1), limits = c(0,1))+
+  geom_point( data = ref, aes(x=mean_g1, y=mean_s1, shape=object), fill="black", size=2)+
   scale_shape_manual( values = shape_maps )
 
 
@@ -217,34 +218,77 @@ biofilm_phasor_gradientonly <-
       axis.title.x= element_text(color="black", size=12),
         strip.background = element_rect(color="black", fill="white"),
         strip.text =element_text(color="black", size=12),
-                               legend.text=element_text(size=10),
+                               legend.text=element_text(size=12),
      strip.text.y=element_text(angle=0),
      strip.text.x=element_text(angle=0),
    plot.title = element_text(hjust = 0.5, size=12),
    plot.margin =margin(l=10), 
-        legend.title=element_text(size=10) ,
-   legend.background = element_rect(color='white' , fill='white'),
+        legend.title=element_text(size=12) ,
+   legend.background = element_rect(color='black' , fill='white'),
+   legend.key = element_rect(color='white', fill='white'),
+   legend.position = 'bottom' ) +
+    xlab(expression('G=M'%*%'cos('~phi~')'))+
+  ylab(expression('S=M'%*%'sin('~phi~')'))+
+    geom_path(data=subset(circle1, y>0),aes(x=x,y=y))+
+  scale_x_continuous(breaks=pretty_breaks(n=2))+
+  scale_y_continuous(breaks=pretty_breaks(n=2), limits = c(0,1))
+  
+
+biofilm_gradient_legend <- cowplot::get_legend(biofilm_phasor_gradientonly)
+
+biofilm_phasor_shapesonly <- 
+   ggplot() + 
+    geom_point( data = ref, aes(x=mean_g1, y=mean_s1, shape=object), size=1,
+                             stroke=1, fill="black")+
+   theme( plot.background = element_rect(fill="white", color="white"),
+        panel.background = element_rect(fill="white", color="black"),
+        panel.grid = element_blank(), 
+        axis.text=element_text(color="black",size=12),
+        axis.ticks=element_blank(),
+        axis.title.y = element_text(color="black", size=12),
+      axis.title.x= element_text(color="black", size=12),
+        strip.background = element_rect(color="black", fill="white"),
+        strip.text =element_text(color="black", size=12),
+                               legend.text=element_text(size=12),
+     strip.text.y=element_text(angle=0),
+     strip.text.x=element_text(angle=0),
+   plot.title = element_text(hjust = 0.5, size=12),
+   plot.margin =margin(l=10), 
+        legend.title=element_text(size=12) ,
+   legend.background = element_rect(color='black' , fill='white'),
    legend.key = element_rect(color='white', fill='white'),
    legend.position = 'bottom' ) +
     xlab(expression('G=M'%*%'cos('~phi~')'))+
   ylab(expression('S=M'%*%'sin('~phi~')'))+
     geom_path(data=subset(circle1, y>0),aes(x=x,y=y))+
   scale_x_continuous(breaks=pretty_breaks(n=3))+
-  scale_y_continuous(breaks=pretty_breaks(n=3), limits = c(0,1))
+  scale_y_continuous(breaks=pretty_breaks(n=3), limits = c(0,1))+
+  scale_shape_manual( values = shape_maps, "Pure solutions" )
+
+biofilm_shapes_legend <- cowplot::get_legend(biofilm_phasor_shapesonly)
   
+biofilm_melt <- reshape2::melt(biofilm, id = c("X", "FileName", "x", "y", "dc", "condition", "plate", "depth", "strain", "media"))
 
-biofilm_gradient_legend <- cowplot::get_legend(biofilm_phasor_gradientonly)
+# only keep s1, g1
+biofilm_melt <- subset(biofilm_melt, variable == "s1" | variable == "g1")
 
-g1_density <- ggplot() + geom_density(data = biofilm, aes(x = g1, color = depth, linetype = depth )) + 
-  facet_grid(strain+media~. ) +
+biofilm_melt$variable <- ifelse( biofilm_melt$variable == "s1", "S", "G"  )
+
+# only keep within axis ranges
+biofilm_melt <- subset(biofilm_melt, c((variable=="S" & value < 0.55) | (variable == "G" & value <1.1)) )
+
+both_density <- ggplot() + 
+   geom_density(data = biofilm_melt, aes(x = value, color = depth, linetype = depth), size=.8) + 
+  facet_grid(strain+media~variable , switch="y", space="free_x", scale="free") +
   scale_color_manual( values = depth_colors,"Depth (µm)"  )+
   theme( plot.background = element_rect(fill="white", color="white"),
         panel.background = element_rect(fill="white", color="black"),
         panel.grid = element_blank(), 
-        axis.text.x=element_text(color="black",size=12),
+        axis.text.x=element_text(size=12),
         axis.text.y = element_blank(),
         axis.ticks=element_blank(),
-        axis.title = element_text(color="black", size=12),
+        axis.title.y = element_text(color="black", size=12),
+        axis.title.x=element_blank(),
         strip.background = element_rect(color="black", fill="white"),
         strip.text =element_text(color="black", size=12),
                                legend.text=element_text(size=12),
@@ -252,36 +296,59 @@ g1_density <- ggplot() + geom_density(data = biofilm, aes(x = g1, color = depth,
      strip.text.x=element_text(angle=0),
    plot.title = element_text(hjust = 0.5, size=12),
         legend.title= element_text(size=12, color='black'),
-   legend.position='none',
    legend.key =  element_rect(fill='white', color='white'))+
-  xlab("G")+
+   # xlab(expression('G=M'%*%'cos('~phi~')'))+
   ylab("Density")+
-  scale_x_continuous( breaks=pretty_breaks(n=3), limits = c(0,1))+
+  scale_x_continuous( breaks=pretty_breaks(n=3))+
   scale_linetype_manual(values = depth_lines, "Depth (µm)")
 
 
-s1_density <- ggplot() + geom_density(data = biofilm, aes(x = s1, color = depth, linetype = depth )) + 
-  facet_grid(strain+media~. ) +
-  scale_color_manual( values = depth_colors,"Depth (µm)"  )+
-  theme( plot.background = element_rect(fill="white", color="white"),
-        panel.background = element_rect(fill="white", color="black"),
-        panel.grid = element_blank(), 
-        axis.text.x =element_text(color="black",size=12),
-        axis.ticks=element_blank(),
-        axis.text.y= element_blank(),
-        axis.title = element_text(color="black", size=12),
-        strip.background = element_rect(color="black", fill="white"),
-        strip.text =element_text(color="black", size=12),
-                               legend.text=element_text(size=12),
-     strip.text.y=element_text(angle=0),
-     strip.text.x=element_text(angle=0),
-   plot.title = element_text(hjust = 0.5, size=12),
-        legend.title= element_text(size=12, color='black'), 
-   legend.key =  element_rect(fill='white', color='white'))+
-  xlab("S")+
-  ylab("Density")+
-  scale_x_continuous( breaks=pretty_breaks(n=3), limits = c(0,0.55))+
-  scale_linetype_manual(values = depth_lines, "Depth (µm)")
+# g1_density <- ggplot() + geom_density(data = biofilm, aes(x = g1, color = depth, linetype = depth )) + 
+#   facet_grid(strain+media~. , switch="both") +
+#   scale_color_manual( values = depth_colors,"Depth (µm)"  )+
+#   theme( plot.background = element_rect(fill="white", color="white"),
+#         panel.background = element_rect(fill="white", color="black"),
+#         panel.grid = element_blank(), 
+#         axis.text.x=element_text(color="black",size=12),
+#         axis.text.y = element_blank(),
+#         axis.ticks=element_blank(),
+#         axis.title = element_text(color="black", size=12),
+#         strip.background = element_rect(color="black", fill="white"),
+#         strip.text =element_text(color="black", size=12),
+#                                legend.text=element_text(size=12),
+#      strip.text.y=element_text(angle=0),
+#      strip.text.x=element_text(angle=0),
+#    plot.title = element_text(hjust = 0.5, size=12),
+#         legend.title= element_text(size=12, color='black'),
+#    legend.position='none',
+#    legend.key =  element_rect(fill='white', color='white'))+
+#     xlab(expression('G=M'%*%'cos('~phi~')'))+
+#   ylab("Density")+
+#   scale_x_continuous( breaks=pretty_breaks(n=3), limits = c(0,1))+
+#   scale_linetype_manual(values = depth_lines, "Depth (µm)")
+# 
+# 
+# s1_density <- ggplot() + geom_density(data = biofilm, aes(x = s1, color = depth, linetype = depth )) + 
+#   facet_grid(strain+media~. ) +
+#   scale_color_manual( values = depth_colors,"Depth (µm)"  )+
+#   theme( plot.background = element_rect(fill="white", color="white"),
+#         panel.background = element_rect(fill="white", color="black"),
+#         panel.grid = element_blank(), 
+#         axis.text.x =element_text(color="black",size=12),
+#         axis.ticks=element_blank(),
+#         axis.text.y= element_blank(),
+#         axis.title = element_text(color="black", size=12),
+#         strip.background = element_rect(color="black", fill="white"),
+#         strip.text =element_blank(),
+#                                legend.text=element_text(size=12),
+#    plot.title = element_text(hjust = 0.5, size=12),
+#         legend.title= element_text(size=12, color='black'), 
+#    legend.key =  element_rect(fill='white', color='white'))+
+#     xlab(expression('S=M'%*%'sin('~phi~')'))+
+#   ylab("Density")+
+#   scale_x_continuous( breaks=pretty_breaks(n=3), limits = c(0,0.55))+
+#   scale_linetype_manual(values = depth_lines, "Depth (µm)")
+
 
 ```
 
@@ -292,18 +359,19 @@ tablea<-textGrob(c("A"), gp=gpar(fontsize=40), vjust=c(-1,0), hjust=c(.5,0))
 tableb<-textGrob(c("B"), gp=gpar(fontsize=40), vjust=c(-1,0), hjust=c(.5,0))
 tablec<-textGrob(c("C"), gp=gpar(fontsize=40), vjust=c(-1,0), hjust=c(.5,0))
 
+panel_a_legends <- arrangeGrob(biofilm_shapes_legend, biofilm_gradient_legend, nrow=2 )
 
-panel_a<- arrangeGrob( arrangeGrob(tablea, biofilm_phasor, ncol=2, widths=c(1,12)), biofilm_gradient_legend, nrow=2, heights=c(3,1),padding = c(.1) )
+panel_a<- arrangeGrob( arrangeGrob(tablea, biofilm_phasor, ncol=2, widths=c(1,12)), panel_a_legends, nrow=2, heights=c(3,2),padding = c(.2) )
 
+panel_b <- arrangeGrob(tableb, both_density , ncol=2, widths=c(1,12))
+# panel_b <- arrangeGrob(tableb, g1_density , ncol=2, widths=c(1,12))
+# panel_c <- arrangeGrob(tablec, s1_density , ncol=2, widths=c(1,12))
+# panel_bc <- arrangeGrob(panel_b,panel_c, ncol=2, widths=c(1,1.2))
 
-panel_b <- arrangeGrob(tableb, g1_density , ncol=2, widths=c(1,12))
-panel_c <- arrangeGrob(tablec, s1_density , ncol=2, widths=c(1,12))
+figure3 <- arrangeGrob(panel_a, panel_b, nrow=2, heights=c(1,1))
 
-panel_bc <- arrangeGrob(panel_b,panel_c, ncol=2, widths=c(1,1.2))
+ggsave(plot=figure3,filename ="/Users/sltg/Documents/GitHub/PseudomonasFLIM/Output/Paper/Figures/fig3_biofilm_phasor.svg", device ='svg', height=6.6, width=6.2 )
 
-figure3 <- arrangeGrob(panel_a, panel_bc, nrow=2, heights=c(2,3))
-
-ggsave(plot=figure3,filename ="/Users/Tara/Documents/GitHub/PseudomonasFLIM/Output/Paper/Figures/fig3_biofilm_phasor.eps", device ='eps', height=8, width=8 )
 
 ```
 
@@ -353,8 +421,8 @@ biofilm_ex$depth_ex <- ifelse(biofilm_ex$depth == "0", 'surface',
 ```{r example images intensity plot }
 
 # normalize intensity 
-biofilm_ex <- biofilm_ex %>% group_by( media, strain, depth ) %>%
-  mutate(norm_dc = log10(dc+1)/max(log10(dc+1)) )
+biofilm_ex <- biofilm_ex %>% group_by( media, strain, depth , FileName) %>%
+  mutate(norm_dc = (dc)/max((dc)) )
 
 biofilm_ex$depth_ex <- factor(biofilm_ex$depth_ex, levels = c('surface', 'bottom'))
 
@@ -470,8 +538,8 @@ ex_mapped$depth_ex <- factor(ex_mapped$depth_ex, levels = c('surface' , 'bottom'
 ex_mapped_phasor <- ggplot() + geom_point(data=ex_mapped, aes(x=g1,y=s1), color = ex_mapped$coul, size=0.1)+
    geom_path(data=subset(circle1, y>0),aes(x=x,y=y))+
     facet_grid(depth_ex ~ strain + media )  + 
-        scale_x_continuous(breaks=pretty_breaks(n=2))+
-  scale_y_continuous(breaks=pretty_breaks(n=2), limits = c(0,1)) +
+        scale_x_continuous(breaks=pretty_breaks(n=1))+
+  scale_y_continuous(breaks=pretty_breaks(n=1), limits = c(0,1)) +
       xlab(expression('G=M'%*%'cos('~phi~')'))+
   ylab(expression('S=M'%*%'sin('~phi~')')) + 
   geom_point( data = ref, aes(x=mean_g1, y=mean_s1, shape=object), fill="black", size=1)+ 
@@ -497,7 +565,7 @@ ex_mapped_phasor <- ggplot() + geom_point(data=ex_mapped, aes(x=g1,y=s1), color 
 
 ```
 
-```{r}
+```{r fig4 panels}
 
 
 
@@ -509,13 +577,13 @@ panel_a <- arrangeGrob(tablea, biofilm_ex_dc, ncol=2, widths=c(1,12))
 panel_b <- arrangeGrob(tableb, ex_color_mapped, ncol=2, widths=c(1,12))
 panel_c <- arrangeGrob(tablec, ex_mapped_phasor, ncol=2, widths=c(1,12))
 
-fig4 <- arrangeGrob(panel_a, panel_b, panel_c, heights=c(1.145,1,1))
+fig4 <- arrangeGrob(panel_a, panel_b, panel_c, heights=c(1.13,1,1))
 
+#ggsave(plot=fig4,filename ="/Users/sltg/Documents/GitHub/PseudomonasFLIM/Output/Paper/Figures/fig4.jpeg", device ='jpeg', height= 8.64, width= 5.8)
 
-ggsave(plot=fig4,filename ="/Users/Tara/Documents/GitHub/PseudomonasFLIM/Output/Paper/Figures/fig4.jpeg", device ='jpeg', height= 8.64, width= 5.8)
+# note fov is 114 um
+ggsave(plot=fig4,filename ="/Users/sltg/Documents/GitHub/PseudomonasFLIM/Output/Paper/Figures/fig4.svg", device ='svg', height=8.9 , width=5.8 )
 
-
-ggsave(plot=fig4,filename ="/Users/Tara/Documents/GitHub/PseudomonasFLIM/Output/Paper/Figures/fig4.eps", device ='eps', height=8.4 , width=6 )
-
+ggsave(plot=fig4,filename ="/Users/sltg/Documents/GitHub/PseudomonasFLIM/Output/Paper/Figures/fig4.eps", device ='eps', height=8.9 , width=5.8 )
 
 ```

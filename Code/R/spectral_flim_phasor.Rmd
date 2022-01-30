@@ -32,7 +32,6 @@ circleFun <- function(center = c(0.5,0),diameter = 1 , npoints = 100){
 
 circle1<- circleFun()
 
-
 color_map_1<-c(
   "Enzyme-bound NADH"="#0072b2",
   "MDH NADH"= "#0072b2", 
@@ -43,7 +42,7 @@ color_map_1<-c(
   "OHPhz (Reduced)" = "#009e73", 
   "FAD" = "#EE9B00" , 
    "CPX" = "#9B2226" ,
-  "OLS" = "#f0e442" , 
+  "OLS" = "black" , 
   "PVD + Fe" = "#f0e442" )
 
 color_map_2<-c(
@@ -62,10 +61,10 @@ shape_maps<-c(
    "PVD"=24,
   "PYO"=25 , 
   "PYO (Reduced)" = 25 , 
-  "OHPhz (Reduced)" = 23,
+  "OHPhz (Reduced)" = 21,
   "FAD" = 21 , 
   "CPX" = 22 ,
-  "OLS" = 22)
+  "OLS" = 8)
 
 
 
@@ -172,10 +171,10 @@ flim_pure<-ggplot()+
   theme( plot.background = element_rect(fill="white", color="white"),
         panel.background = element_rect(fill="white", color="black"),
         panel.grid = element_blank(), 
-        axis.text=element_text(color="black",size=12),
+        axis.text=element_text(color="black",size=16),
         axis.ticks=element_blank(),
-        axis.title.y = element_text(color="black", size=12),
-      axis.title.x= element_text(color="black", size=12),
+        axis.title.y = element_text(color="black", size=16),
+      axis.title.x= element_text(color="black", size=16),
         strip.background = element_rect(color="black", fill="white"),
         strip.text =element_text(color="black", size=12),
                                legend.text=element_text(size=12),
@@ -224,10 +223,10 @@ shapes_only<-ggplot()+
   theme( plot.background = element_rect(fill="white", color="white"),
         panel.background = element_rect(fill="white", color="black"),
         panel.grid = element_blank(), 
-        axis.text=element_text(color="black",size=12),
+        axis.text=element_text(color="black",size=14),
         axis.ticks=element_blank(),
-        axis.title.y = element_text(color="black", size=12),
-      axis.title.x= element_text(color="black", size=12),
+        axis.title.y = element_text(color="black", size=14),
+      axis.title.x= element_text(color="black", size=14),
         strip.background = element_rect(color="black", fill="white"),
         strip.text =element_text(color="black", size=12),
                                legend.text=element_text(size=12),
@@ -292,10 +291,10 @@ spectra_plot <- ggplot() +
   theme( plot.background = element_rect(fill="white", color="white"),
         panel.background = element_rect(fill="white", color="black"),
         panel.grid = element_blank(), 
-        axis.text=element_text(color="black",size=12),
+        axis.text=element_text(color="black",size=16),
         axis.ticks=element_blank(),
-        axis.title.y = element_text(color="black", size=12),
-      axis.title.x= element_text(color="black", size=12),
+        axis.title.y = element_text(color="black", size=16),
+      axis.title.x= element_text(color="black", size=16),
         strip.background = element_rect(color="black", fill="white"),
         strip.text =element_text(color="black", size=12),
                                legend.text=element_text(size=12),
@@ -333,6 +332,6 @@ bottom_panel <- arrangeGrob(tableb, flim_legend, ncol=2, widths=c(1,12))
 
 figure2 <- arrangeGrob(top_panel, bottom_panel, nrow=2)
 
-ggsave(plot=figure2,filename ="/Users/sltg/Documents/GitHub/PseudomonasFLIM/Output/Paper/Figures/fig2_spectra_phasor.eps", device ='eps', height=8, width=8 )
+ggsave(plot=figure2,filename ="/Users/sltg/Documents/GitHub/PseudomonasFLIM/Output/Paper/Figures/fig2_spectra_phasor.eps", device ='eps', height=7, width=7.5 )
 
 ```

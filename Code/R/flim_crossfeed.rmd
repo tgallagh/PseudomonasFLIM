@@ -54,6 +54,7 @@ color_map_2<-c(
 
 #EFF1F3
 
+
 shape_maps<-c(
   "Enzyme-bound NADH"=22,
   "MDH NADH"=22,
@@ -61,11 +62,10 @@ shape_maps<-c(
    "PVD"=24,
   "PYO"=25 , 
   "PYO (Reduced)" = 25 , 
-  "OHPhz (Reduced)" = 23,
+  "OHPhz (Reduced)" = 21,
   "FAD" = 21 , 
   "CPX" = 22 ,
-  "OLS" = 8 )
-
+  "OLS" = 8)
 
 # media color maps
 media_colors <- c(
@@ -374,7 +374,7 @@ shapes_only<-ggplot()+
 
 flim_shapes_legend <- cowplot::get_legend(shapes_only)
 
-all_g1_density <- ggplot() + geom_density(data = all, aes(x = g1, fill=media_sup, color = media_sup),  size=1, alpha=0.3)+
+all_g1_density <- ggplot() + geom_density(data = all, aes(x = g1, fill=media_sup, color = media_sup),  size=0.5, alpha=0.3)+
   scale_color_manual( values = media_colors )+
   scale_fill_manual(values = media_colors ) +
    theme( plot.background = element_rect(fill="white", color="white"),
@@ -396,7 +396,7 @@ all_g1_density <- ggplot() + geom_density(data = all, aes(x = g1, fill=media_sup
   ylab("Density")
 
 
-all_s1_density<- ggplot() + geom_density(data = all, aes(x = s1, fill=media_sup, color = media_sup),  size=1, alpha=0.3)+
+all_s1_density<- ggplot() + geom_density(data = all, aes(x = s1, fill=media_sup, color = media_sup),  size=0.5, alpha=0.3)+
   scale_color_manual( values = media_colors )+
   scale_fill_manual(values = media_colors ) +
    theme( plot.background = element_rect(fill="white", color="white"),
@@ -550,7 +550,7 @@ ex_mapped_phasor <- ggplot() + geom_tile(data=ex_mapped, aes(x=g1,y=s1), fill=ex
         axis.title = element_text(color="black", size=12)) +
       xlab(expression('G=M'%*%'cos('~phi~')'))+
   ylab(expression('S=M'%*%'sin('~phi~')')) + 
-  geom_point( data = ref, aes(x=mean_g1, y=mean_s1, shape=object), fill="black", size=2)+
+  geom_point( data = ref, aes(x=mean_g1, y=mean_s1, shape=object), fill="black", size=1)+
   scale_shape_manual( values = shape_maps )+
       scale_x_continuous(breaks=pretty_breaks(n=3))+
   scale_y_continuous(breaks=pretty_breaks(n=3), limits = c(0,1))

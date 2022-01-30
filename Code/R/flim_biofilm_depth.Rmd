@@ -587,3 +587,34 @@ ggsave(plot=fig4,filename ="/Users/sltg/Documents/GitHub/PseudomonasFLIM/Output/
 ggsave(plot=fig4,filename ="/Users/sltg/Documents/GitHub/PseudomonasFLIM/Output/Paper/Figures/fig4.eps", device ='eps', height=8.9 , width=5.8 )
 
 ```
+
+```{r distribution tests}
+
+# test if the distributions of surface WT are different than phz ko 
+
+# WT surface is shifted to left of phz ko
+
+
+# ASM
+wilcox.test( y = unlist(subset(biofilm, media == 'ASM' & depth ==0 & condition == 'phzko_ASM')[,c('g1')]),
+             x = unlist(subset(biofilm, media == 'ASM' & depth == 0 & strain == "WT")[,c('g1')]),
+             alternative = c('less'))
+
+wilcox.test( y = unlist(subset(biofilm, media == 'ASM' & depth ==0 & condition == 'phzko_ASM')[,c('s1')]),
+             x = unlist(subset(biofilm, media == 'ASM' & depth == 0 & strain == "WT")[,c('s1')]),
+             alternative = c('less'))
+
+
+# M9 succinate
+
+wilcox.test( y = unlist(subset(biofilm, media == 'M9 suc' & depth ==0 & condition == 'phzko_M9suc')[,c('g1')]),
+             x = unlist(subset(biofilm, media == 'M9 suc' & depth == 0 & strain == "WT")[,c('g1')]),
+             alternative = c('less'))
+
+
+wilcox.test( y = unlist(subset(biofilm, media == 'M9 suc' & depth ==0 & condition == 'phzko_M9suc')[,c('s1')]),
+             x = unlist(subset(biofilm, media == 'M9 suc' & depth == 0 & strain == "WT")[,c('s1')]),
+             alternative = c('less'))
+
+
+```

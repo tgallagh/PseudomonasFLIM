@@ -210,7 +210,6 @@ pre code {
 
 circle1&lt;- circleFun()
 
-
 color_map_1&lt;-c(
   &quot;Enzyme-bound NADH&quot;=&quot;#0072b2&quot;,
   &quot;MDH NADH&quot;= &quot;#0072b2&quot;, 
@@ -221,7 +220,7 @@ color_map_1&lt;-c(
   &quot;OHPhz (Reduced)&quot; = &quot;#009e73&quot;, 
   &quot;FAD&quot; = &quot;#EE9B00&quot; , 
    &quot;CPX&quot; = &quot;#9B2226&quot; ,
-  &quot;OLS&quot; = &quot;#f0e442&quot; , 
+  &quot;OLS&quot; = &quot;black&quot; , 
   &quot;PVD + Fe&quot; = &quot;#f0e442&quot; )
 
 color_map_2&lt;-c(
@@ -240,10 +239,10 @@ shape_maps&lt;-c(
    &quot;PVD&quot;=24,
   &quot;PYO&quot;=25 , 
   &quot;PYO (Reduced)&quot; = 25 , 
-  &quot;OHPhz (Reduced)&quot; = 23,
+  &quot;OHPhz (Reduced)&quot; = 21,
   &quot;FAD&quot; = 21 , 
   &quot;CPX&quot; = 22 ,
-  &quot;OLS&quot; = 22)
+  &quot;OLS&quot; = 8)
 
 
 
@@ -340,10 +339,10 @@ flim_pure&lt;-ggplot()+
   theme( plot.background = element_rect(fill=&quot;white&quot;, color=&quot;white&quot;),
         panel.background = element_rect(fill=&quot;white&quot;, color=&quot;black&quot;),
         panel.grid = element_blank(), 
-        axis.text=element_text(color=&quot;black&quot;,size=12),
+        axis.text=element_text(color=&quot;black&quot;,size=16),
         axis.ticks=element_blank(),
-        axis.title.y = element_text(color=&quot;black&quot;, size=12),
-      axis.title.x= element_text(color=&quot;black&quot;, size=12),
+        axis.title.y = element_text(color=&quot;black&quot;, size=16),
+      axis.title.x= element_text(color=&quot;black&quot;, size=16),
         strip.background = element_rect(color=&quot;black&quot;, fill=&quot;white&quot;),
         strip.text =element_text(color=&quot;black&quot;, size=12),
                                legend.text=element_text(size=12),
@@ -392,10 +391,10 @@ shapes_only&lt;-ggplot()+
   theme( plot.background = element_rect(fill=&quot;white&quot;, color=&quot;white&quot;),
         panel.background = element_rect(fill=&quot;white&quot;, color=&quot;black&quot;),
         panel.grid = element_blank(), 
-        axis.text=element_text(color=&quot;black&quot;,size=12),
+        axis.text=element_text(color=&quot;black&quot;,size=14),
         axis.ticks=element_blank(),
-        axis.title.y = element_text(color=&quot;black&quot;, size=12),
-      axis.title.x= element_text(color=&quot;black&quot;, size=12),
+        axis.title.y = element_text(color=&quot;black&quot;, size=14),
+      axis.title.x= element_text(color=&quot;black&quot;, size=14),
         strip.background = element_rect(color=&quot;black&quot;, fill=&quot;white&quot;),
         strip.text =element_text(color=&quot;black&quot;, size=12),
                                legend.text=element_text(size=12),
@@ -453,10 +452,10 @@ spectra_plot &lt;- ggplot() +
   theme( plot.background = element_rect(fill=&quot;white&quot;, color=&quot;white&quot;),
         panel.background = element_rect(fill=&quot;white&quot;, color=&quot;black&quot;),
         panel.grid = element_blank(), 
-        axis.text=element_text(color=&quot;black&quot;,size=12),
+        axis.text=element_text(color=&quot;black&quot;,size=16),
         axis.ticks=element_blank(),
-        axis.title.y = element_text(color=&quot;black&quot;, size=12),
-      axis.title.x= element_text(color=&quot;black&quot;, size=12),
+        axis.title.y = element_text(color=&quot;black&quot;, size=16),
+      axis.title.x= element_text(color=&quot;black&quot;, size=16),
         strip.background = element_rect(color=&quot;black&quot;, fill=&quot;white&quot;),
         strip.text =element_text(color=&quot;black&quot;, size=12),
                                legend.text=element_text(size=12),
@@ -486,7 +485,7 @@ bottom_panel &lt;- arrangeGrob(tableb, flim_legend, ncol=2, widths=c(1,12))
 
 figure2 &lt;- arrangeGrob(top_panel, bottom_panel, nrow=2)
 
-ggsave(plot=figure2,filename =&quot;/Users/sltg/Documents/GitHub/PseudomonasFLIM/Output/Paper/Figures/fig2_spectra_phasor.eps&quot;, device =&#39;eps&#39;, height=8, width=8 )</code></pre>
+ggsave(plot=figure2,filename =&quot;/Users/sltg/Documents/GitHub/PseudomonasFLIM/Output/Paper/Figures/fig2_spectra_phasor.eps&quot;, device =&#39;eps&#39;, height=7, width=7.5 )</code></pre>
 
 
 

@@ -1,0 +1,29 @@
+---
+title: "Untitled"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r libs}
+require(dplyr)
+require(ggplot2)
+require(reshape2)
+
+```
+
+
+```{r fig s1}
+#Figure S1: Spectra of fluorophores not captured by DIVER FLIM : PCA, PCN, CPX, FAD
+
+### DATA
+pixel_df <- read.csv(file =  '/Users/tara.gallagher/Documents/GitHub/PseudomonasFLIM/Data/Processed/df_fig2_spectra.csv', header=T)
+
+
+
+
+
+
+```

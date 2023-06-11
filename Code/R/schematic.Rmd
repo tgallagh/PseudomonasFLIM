@@ -2,6 +2,7 @@
 title: "Flim_Figure1"
 author: "tara"
 date: "4/28/2020"
+updated: "05/06/22" 
 output: html_document
 ---
 
@@ -194,10 +195,128 @@ interpretphasor<-ggplot()+  geom_segment(data=rbind(freeNADH, enzymeNADH), aes(x
   scale_y_continuous(breaks=pretty_breaks(n=1))
 
 
+gradient_colors <- c( "#E69F00", "#56B4E9")
+
+
+sample_1<- cbind(data.frame( sample ( rep( seq(1:21), 500)) )) 
+sample_1 <- data.frame(sample_1[1:10000,]    )                     
+
+colnames(sample_1)[1] <- "colors"
+sample_1$x <- c(1:100)
+
+# get y 
+y_col <- c()
+for (x in seq(1:100) ) {
+  set_number <- x
+  print(set_number)
+  sequence <- seq(1:100)
+  for (y in sequence) {
+    if (set_number == y)  {
+        new_list <-  sequence[set_number:100] 
+        new_list <- append(new_list, sequence[1:set_number-1 ])
+    }
+  }
+      y_col <- append(y_col, new_list)
+
+} 
+  
+sample_1$y <- y_col
+
+
+sample_2<- cbind(data.frame( sample ( rep( seq(1:51), 200)) )) 
+sample_2 <- data.frame(sample_2[1:10000,]    )                     
+
+colnames(sample_2)[1] <- "colors"
+sample_2$x <- c(1:100)
+
+# get y 
+y_col <- c()
+for (x in seq(1:100) ) {
+  set_number <- x
+  print(set_number)
+  sequence <- seq(1:100)
+  for (y in sequence) {
+    if (set_number == y)  {
+        new_list <-  sequence[set_number:100] 
+        new_list <- append(new_list, sequence[1:set_number-1 ])
+    }
+  }
+      y_col <- append(y_col, new_list)
+
+} 
+  
+sample_2$y <- y_col
+
+
+sample_1$sample <- "sample 1"
+sample_2$sample <- "sample 2"
+
+ex_image <- rbind(sample_1, sample_2)
+  
+ex_image$g <- seq(0.25, 0.75, (0.75-0.25)/(nrow(ex_image)-1))
+
+
+ex_image$s <- rev(seq(0.2,.5, (.5-0.2)/(nrow(ex_image)-1)))
+
+ex_image$index <- rownames(ex_image)
+
+
+
+
+ggplot() + geom_tile(data=ex_image, aes(x=x, y=y, fill=colors ))+
+  scale_fill_gradient(low = gradient_colors[2], high=gradient_colors[1] )  +
+  facet_grid(.~sample)
+
+ex_image$g <- jitter(ex_image$g, factor=5000)
+ex_image$s <- jitter(ex_image$s, factor=1000)
+
+sampled_ex_image <- ex_image
+
+sampled_ex_image <- sampled_ex_image %>% mutate(bin_g = cut(g, breaks=50), 
+                                                bin_s = cut(s,breaks=50))
+
+sampled_ex_image$bin_g1 <- gsub(pattern=".*,", replacement = "", sampled_ex_image$bin_g)
+
+sampled_ex_image$bin_g1 <- gsub(pattern="\\]", replacement = "", sampled_ex_image$bin_g1)
+
+
+sampled_ex_image$bin_s1 <- gsub(pattern=".*,", replacement = "", sampled_ex_image$bin_s)
+
+sampled_ex_image$bin_s1 <- gsub(pattern="\\]", replacement = "", sampled_ex_image$bin_s1)
+
+sampled_ex_image$bin_g1 <- as.numeric(as.character(sampled_ex_image$bin_g1))
+
+sampled_ex_image$bin_s1 <- as.numeric(as.character(sampled_ex_image$bin_s1))
+
+
+
+sampled_ex_image <- subset(sampled_ex_image,  (bin_g1 > 0.5 & bin_s1<0.35 ) | 
+                             (bin_g1 < 0.45 & bin_s1 >0.38)
+                           )
+
+sampled_ex_image <- sample_n(sampled_ex_image, 665)
+
+sampled_ex_image<-sampled_ex_image[order(sampled_ex_image$bin_s1),]
+
+sampled_ex_image$fill <- colorRampPalette(c(gradient_colors[2],  "#412395", "#C06832", "orange"))(nrow(sampled_ex_image))
+
+ggplot()+geom_tile(data=sampled_ex_image, aes(x=bin_g1,y=bin_s1, fill=fill))+
+  scale_fill_manual(values = sampled_ex_image$fill)+
+  theme(legend.position="none")
+
+
+# scale_fill_gradient(low = gradient_colors[2], high=gradient_colors[1] ) +
+# scale_color_gradient(low = gradient_colors[2], high=gradient_colors[1] )
+
+
+
 freeNADH$object<-c("Species1")
 enzymeNADH$object<-c("Species2")
 freeNADH$FC<-c(0.25)
 enzymeNADH$FC<-c(0.75)
+
+
+
 
 fcdf<- rbind(enzymeNADH, freeNADH)
 

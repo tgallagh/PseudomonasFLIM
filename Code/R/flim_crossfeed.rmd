@@ -34,7 +34,7 @@ circle1<- circleFun()
 
 color_map_1<-c(
   "Enzyme-bound NADH"="#0072b2",
-  "MDH NADH"= "#0072b2", 
+  "LDH NADH"= "#0072b2", 
   "Free NADH"= "#e69f00",
    "PVD"="#d55e00",
   "PYO"="#56b4e9", 
@@ -47,7 +47,7 @@ color_map_1<-c(
 
 color_map_2<-c(
   "Enzyme-bound NADH"="#272727",
-  "MDH NADH"="#272727",
+  "LDH NADH"="#272727",
   "Free NADH"="#696773",
    "PVD"="#FED766",
   "PYO"="#009FB7")
@@ -57,7 +57,7 @@ color_map_2<-c(
 
 shape_maps<-c(
   "Enzyme-bound NADH"=22,
-  "MDH NADH"=22,
+  "LDH NADH"=22,
   "Free NADH"=23,
    "PVD"=24,
   "PYO"=25 , 
@@ -80,7 +80,7 @@ media_shapes <- c(
 
 color_shape_maps<-c(
   "Enzyme-bound NADH"= 0,
-  "MDH NADH"= 0,
+  "LDH NADH"= 0,
   "Free NADH"=5,
    "PVD"= 2 ,
   "PYO"= 6 )
@@ -100,7 +100,7 @@ white_black <- c("#F8F8FF", "#CAC9CD" ,  "#9B9A9C" , "#6D6A6A" , "#3E3B39" , "#1
 
 ```{r references}
 
-ref <- read.csv( file = "/Users/sltg/Documents/GitHub/PseudomonasFLIM/Data/Processed/ref_flim_means.csv")
+ref <- read.csv( file = "/Users/tara.gallagher/Documents/GitHub/PseudomonasFLIM/Data/Processed/ref_flim_means.csv")
 
 ```
 
@@ -132,7 +132,7 @@ ref <- rbind(ref, oxlipid)
 
 ```{r x-feeding flim plot }
 
-xfeed <- read.csv(file =  '/Users/sltg/Documents/GitHub/PseudomonasFLIM/Data/Processed/df_xfeed_flim.csv', header=T)
+xfeed <- read.csv(file =  '/Users/tara.gallagher/Documents/GitHub/PseudomonasFLIM/Data/Processed/df_xfeed_flim.csv', header=T)
 
 # get media condition
 xfeed$media <- ifelse(grepl('ASM', xfeed$FileName), 'ASM', 
@@ -661,22 +661,22 @@ panel_c <- arrangeGrob(tablec,
 
 # put panels together in illustrator 
 
-ggsave(plot=panel_a,filename ="/Users/sltg/Documents/GitHub/PseudomonasFLIM/Output/Paper/Figures/fig5a_xfeed.eps", device ='eps', height=2.5, width=6/1.6 )
+ggsave(plot=panel_a,filename ="/Users/tara.gallagher/Documents/GitHub/PseudomonasFLIM/Output/Paper/Figures/fig5a_xfeed.eps", device ='eps', height=2.5, width=6/1.6 )
 
-ggsave(plot=panel_a_legends,filename ="/Users/sltg/Documents/GitHub/PseudomonasFLIM/Output/Paper/Figures/fig5a_xfeed_legends.eps", device ='eps', height=4, width=2 )
+ggsave(plot=panel_a_legends,filename ="/Users/tara.gallagher//Documents/GitHub/PseudomonasFLIM/Output/Paper/Figures/fig5a_xfeed_legends.eps", device ='eps', height=4, width=2 )
 
-ggsave(plot=all_g1_density,filename ="/Users/sltg/Documents/GitHub/PseudomonasFLIM/Output/Paper/Figures/fig5a_g1density_xfeed.eps", device ='eps', height=2/1.6, width=6/1.6 )
+ggsave(plot=all_g1_density,filename ="/Users/tara.gallagher//Documents/GitHub/PseudomonasFLIM/Output/Paper/Figures/fig5a_g1density_xfeed.eps", device ='eps', height=2/1.6, width=6/1.6 )
 
-ggsave(plot=all_s1_density,filename ="/Users/sltg/Documents/GitHub/PseudomonasFLIM/Output/Paper/Figures/fig5a_s1_density_xfeed.eps", device ='eps', height=6/1.6, width=2/1.6)
-
-
-ggsave(plot=panel_b,filename ="/Users/sltg/Documents/GitHub/PseudomonasFLIM/Output/Paper/Figures/fig5b_xfeed.eps", device ='eps', height=3.6/1.33, width=8/1.6 )
+ggsave(plot=all_s1_density,filename ="/Users/tara.gallagher/Documents/GitHub/PseudomonasFLIM/Output/Paper/Figures/fig5a_s1_density_xfeed.eps", device ='eps', height=6/1.6, width=2/1.6)
 
 
-ggsave(plot=panel_c,filename ="/Users/sltg/Documents/GitHub/PseudomonasFLIM/Output/Paper/Figures/fig5c_xfeed.eps", device ='eps', height=4.7/1.5, width=8/1.6)
+ggsave(plot=panel_b,filename ="/Users/tara.gallagher//Documents/GitHub/PseudomonasFLIM/Output/Paper/Figures/fig5b_xfeed.eps", device ='eps', height=3.6/1.33, width=8/1.6 )
 
 
-ggsave(plot=blue_orange_legend,filename ="/Users/sltg/Documents/GitHub/PseudomonasFLIM/Output/Paper/Figures/fig5c_legend.eps", device ='eps', height=1, width=4 )
+ggsave(plot=panel_c,filename ="/Users/tara.gallagher//Documents/GitHub/PseudomonasFLIM/Output/Paper/Figures/fig5c_xfeed.eps", device ='eps', height=4.7/1.5, width=8/1.6)
+
+
+ggsave(plot=blue_orange_legend,filename ="/Users/tara.gallagher//Documents/GitHub/PseudomonasFLIM/Output/Paper/Figures/fig5c_legend.eps", device ='eps', height=1, width=4 )
 
 
 ```

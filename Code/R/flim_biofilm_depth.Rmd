@@ -32,7 +32,7 @@ circle1<- circleFun()
 
 color_map_1<-c(
   "Enzyme-bound NADH"="#0072b2",
-  "MDH NADH"= "#0072b2", 
+  "LDH NADH"= "#0072b2", 
   "Free NADH"= "#e69f00",
    "PVD"="#d55e00",
   "PYO"="#56b4e9", 
@@ -45,7 +45,7 @@ color_map_1<-c(
 
 color_map_2<-c(
   "Enzyme-bound NADH"="#272727",
-  "MDH NADH"="#272727",
+  "LDH NADH"="#272727",
   "Free NADH"="#696773",
    "PVD"="#FED766",
   "PYO"="#009FB7")
@@ -53,15 +53,11 @@ color_map_2<-c(
 #EFF1F3
 
 shape_maps<-c(
-  "Enzyme-bound NADH"=22,
-  "MDH NADH"=22,
+  "LDH NADH"=22,
   "Free NADH"=23,
    "PVD"=24,
-  "PYO"=25 , 
   "PYO (Reduced)" = 25 , 
   "OHPhz (Reduced)" = 21,
-  "FAD" = 21 , 
-  "CPX" = 22 ,
   "OLS" = 8)
 
 
@@ -78,7 +74,7 @@ media_shapes <- c(
 
 color_shape_maps<-c(
   "Enzyme-bound NADH"= 0,
-  "MDH NADH"= 0,
+  "LDH NADH"= 0,
   "Free NADH"=5,
    "PVD"= 2 ,
   "PYO"= 6 )
@@ -106,11 +102,11 @@ depth_lines <- c("solid", "dotted", "dashed", "longdash", "solid", "dotted", "da
 
 ```{r paths and data}
 # reference means 
-ref <- read.csv( file = "/Users/sltg//Documents/GitHub/PseudomonasFLIM/Data/Processed/ref_flim_means.csv")
+ref <- read.csv( file = "/Users/tara.gallagher/Documents/GitHub/PseudomonasFLIM/Data/Processed/ref_flim_means.csv")
 
 # biofilm depth data
 # g and s data
-biofilm <- read.csv(file =  '/Users/sltg/Documents/GitHub/PseudomonasFLIM/Data/Processed/df_biofilm_flim.csv', header=T)
+biofilm <- read.csv(file =  '/Users/tara.gallagher/Documents/GitHub/PseudomonasFLIM/Data/Processed/df_biofilm_flim.csv', header=T)
 
 ```
 
@@ -129,7 +125,7 @@ phasorFun <- function(omega,time){
 
 enzymeNADH<-phasorFun(80,3.2)
 phasorFun(80,10)
-enzymeNADH$object<-c("MDH NADH")
+enzymeNADH$object<-c("LDH NADH")
 
 oxlipid<-phasorFun(80,7.8)
 
@@ -168,8 +164,10 @@ biofilm <- subset(biofilm, FileName!="/Users/sltg/Documents/GitHub/PseudomonasFL
 
 # order biofilm depth 
 biofilm$depth <- factor(as.character(biofilm$depth))
+
 levels(biofilm$depth) <- c("0","100","200","300", "400","500","600","700","800","900","1000")
 
+biofilm <- subset(biofilm, depth!= 75 )
 
 biofilm_phasor <- ggplot() + 
   geom_path(data=subset(circle1, y>0),aes(x=x,y=y))+
@@ -370,7 +368,9 @@ panel_b <- arrangeGrob(tableb, both_density , ncol=2, widths=c(1,12))
 
 figure3 <- arrangeGrob(panel_a, panel_b, nrow=2, heights=c(1,1))
 
-ggsave(plot=figure3,filename ="/Users/sltg/Documents/GitHub/PseudomonasFLIM/Output/Paper/Figures/fig3_biofilm_phasor.svg", device ='svg', height=6.6, width=6.2 )
+ggsave(plot=figure3,filename ="/Users/tara.gallagher/Documents/GitHub/PseudomonasFLIM/Output/Paper/Figures/fig3_biofilm_phasor.svg", device ='svg', height=6.6, width=6.2 )
+
+ggsave(plot=biofilm_shapes_legend,filename ="/Users/tara.gallagher/Documents/GitHub/PseudomonasFLIM/Output/Paper/Figures/legend_biofilm_phasor.svg", device ='svg', height=2, width=6.2 )
 
 
 ```
@@ -401,9 +401,9 @@ biofilm_ex <- subset(biofilm, plate == 'plate1' & (
 ) )
 
 # use different plate for phz ko asm
-biofilm_ex <- subset(biofilm_ex, FileName!="/Users/sltg/Documents/GitHub/PseudomonasFLIM/Data/FLIM/biofilm/phzko_ASM/plate1/60p_900d901$CG0T_0-1__ch1_h1_h2.R64")
+biofilm_ex <- subset(biofilm_ex, FileName!="/Users/tara.gallagher/Documents/GitHub/PseudomonasFLIM/Data/FLIM/biofilm/phzko_ASM/plate1/60p_900d901$CG0T_0-1__ch1_h1_h2.R64")
 
-biofilm_ex <- subset(biofilm_ex, FileName!="/Users/sltg/Documents/GitHub/PseudomonasFLIM/Data/FLIM/biofilm/phzko_ASM/plate1/15p_0d000$CG0T_0-1__ch1_h1_h2.R64")
+biofilm_ex <- subset(biofilm_ex, FileName!="/Users/tara.gallagher/Documents/GitHub/PseudomonasFLIM/Data/FLIM/biofilm/phzko_ASM/plate1/15p_0d000$CG0T_0-1__ch1_h1_h2.R64")
 
 
 biofilm_ex <- rbind(biofilm_ex, subset(biofilm,  strain=="Δphz" & media=="ASM" & plate=="plate3"  & c(
@@ -579,12 +579,12 @@ panel_c <- arrangeGrob(tablec, ex_mapped_phasor, ncol=2, widths=c(1,12))
 
 fig4 <- arrangeGrob(panel_a, panel_b, panel_c, heights=c(1.13,1,1))
 
-#ggsave(plot=fig4,filename ="/Users/sltg/Documents/GitHub/PseudomonasFLIM/Output/Paper/Figures/fig4.jpeg", device ='jpeg', height= 8.64, width= 5.8)
+#ggsave(plot=fig4,filename ="/Users/tara.gallagher/Documents/GitHub/PseudomonasFLIM/Output/Paper/Figures/fig4.jpeg", device ='jpeg', height= 8.64, width= 5.8)
 
 # note fov is 114 um
-ggsave(plot=fig4,filename ="/Users/sltg/Documents/GitHub/PseudomonasFLIM/Output/Paper/Figures/fig4.svg", device ='svg', height=8.9 , width=5.8 )
+ggsave(plot=fig4,filename ="/Users/tara.gallagher/Documents/GitHub/PseudomonasFLIM/Output/Paper/Figures/fig4.svg", device ='svg', height=8.9 , width=5.8 )
 
-ggsave(plot=fig4,filename ="/Users/sltg/Documents/GitHub/PseudomonasFLIM/Output/Paper/Figures/fig4.eps", device ='eps', height=8.9 , width=5.8 )
+ggsave(plot=fig4,filename ="/Users/tara.gallagher/Documents/GitHub/PseudomonasFLIM/Output/Paper/Figures/fig4.eps", device ='eps', height=8.9 , width=5.8 )
 
 ```
 

@@ -34,7 +34,7 @@ circle1<- circleFun()
 
 color_map_1<-c(
   "Enzyme-bound NADH"="#0072b2",
-  "MDH NADH"= "#0072b2", 
+  "LDH NADH"= "#0072b2", 
   "Free NADH"= "#e69f00",
    "PVD"="#d55e00",
   "PYO"="#56b4e9", 
@@ -47,7 +47,7 @@ color_map_1<-c(
 
 color_map_2<-c(
   "Enzyme-bound NADH"="#272727",
-  "MDH NADH"="#272727",
+  "LDH NADH"="#272727",
   "Free NADH"="#696773",
    "PVD"="#FED766",
   "PYO"="#009FB7")
@@ -56,7 +56,7 @@ color_map_2<-c(
 
 shape_maps<-c(
   "Enzyme-bound NADH"=22,
-  "MDH NADH"=22,
+  "LDH NADH"=22,
   "Free NADH"=23,
    "PVD"=24,
   "PYO"=25 , 
@@ -70,7 +70,7 @@ shape_maps<-c(
 
 color_shape_maps<-c(
   "Enzyme-bound NADH"= 0,
-  "MDH NADH"= 0,
+  "LDH NADH"= 0,
   "Free NADH"=5,
    "PVD"= 2 ,
   "PYO"= 6 )
@@ -112,7 +112,7 @@ oxlipid$object<-c("OLS")
 ```{r flim pixel data}
 
 
-pixel_df <- read.csv(file =  '/Users/sltg/Documents/GitHub/PseudomonasFLIM/Data/Processed/df_refs_flim.csv', header=T)
+pixel_df <- read.csv(file =  '/Users/tara.gallagher/Documents/GitHub/PseudomonasFLIM/Data/Processed/df_refs_flim.csv', header=T)
 
 
 #red_passive_pyo<-data.frame(0.0289,0.145,"")
@@ -148,8 +148,8 @@ flim_single_component<-rbind(enzymeNADH, means)
 flim_single_component<-rbind(oxlipid, flim_single_component)
 
 
-pixel_df$object <- ifelse(pixel_df$object == "Enzyme-bound NADH", "MDH NADH", pixel_df$object)
-flim_single_component$object <- ifelse(flim_single_component$object == "Enzyme-bound NADH", "MDH NADH", flim_single_component$object)
+pixel_df$object <- ifelse(pixel_df$object == "Enzyme-bound NADH", "LDH NADH", pixel_df$object)
+flim_single_component$object <- ifelse(flim_single_component$object == "Enzyme-bound NADH", "LDH NADH", flim_single_component$object)
 
 
 pixel_df <- subset(pixel_df, object!="PVD + Fe")
@@ -161,7 +161,7 @@ flim_pure<-ggplot()+
   geom_point(data = flim_single_component, aes(x=mean_g1, y=mean_s1, shape=object),color='black', size=4, 
              stroke=1,
              fill = c(color_map_1['OLS'],
-                    color_map_1['MDH NADH'], 
+                    color_map_1['LDH NADH'], 
                 color_map_1['Free NADH'],
                       color_map_1['OHPhz (Reduced)'], 
                       color_map_1['PVD'], 
@@ -258,15 +258,15 @@ flim_pure_gradient_legend <- cowplot::get_legend(gradient_only)
 
 
 ```{r spectral data}
-spectra <- read.csv( file= '/Users/sltg/Documents/GitHub/PseudomonasFLIM/Data/Processed/df_fig2_spectra.csv' ) 
-semrock <- read.csv( file= '/Users/sltg/Documents/GitHub/PseudomonasFLIM/Data/Processed/df_fig2_semrock.csv' )
+spectra <- read.csv( file= '/Users/tara.gallagher/Documents/GitHub/PseudomonasFLIM/Data/Processed/df_fig2_spectra.csv' ) 
+semrock <- read.csv( file= '/Users/tara.gallagher/Documents/GitHub/PseudomonasFLIM/Data/Processed/df_fig2_semrock.csv' )
 
 # dont use oh phz since non reproducible data
 #spectra <- subset(spectra, Sample!= "Reduced OHPhz")
 
 spectra$Sample <- ifelse( spectra$Sample ==  'Reduced PYO', 'PYO (Reduced)' , spectra$Sample )
 
-ohphz <- read.csv( file = '/Users/sltg/Documents/GitHub/PseudomonasFLIM/Data/Processed/df_ohphz_spectra.csv' )
+ohphz <- read.csv( file = '/Users/tara.gallagher/Documents/GitHub/PseudomonasFLIM/Data/Processed/df_ohphz_spectra.csv' )
 ggplot() + geom_line(data = ohphz, aes(x=Wavelength, y=Intensity, color=FileName))
 ggplot() + geom_line(data = subset(ohphz, FileName!='hydrozyphenazine_reduced100uMslide_740nm20x5na473_697nm_10nmres_73p_25uspixd_13um_t1_l624.lsm') , aes(x=Wavelength, y=Intensity, color=FileName))
 
@@ -332,6 +332,6 @@ bottom_panel <- arrangeGrob(tableb, flim_legend, ncol=2, widths=c(1,12))
 
 figure2 <- arrangeGrob(top_panel, bottom_panel, nrow=2)
 
-ggsave(plot=figure2,filename ="/Users/sltg/Documents/GitHub/PseudomonasFLIM/Output/Paper/Figures/fig2_spectra_phasor.eps", device ='eps', height=7, width=7.5 )
+ggsave(plot=figure2,filename ="/Users/tara.gallagher/Documents/GitHub/PseudomonasFLIM/Output/Paper/Figures/fig2_spectra_phasor.eps", device ='eps', height=7, width=7.5 )
 
 ```

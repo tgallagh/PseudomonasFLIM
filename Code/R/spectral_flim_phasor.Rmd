@@ -32,7 +32,7 @@ circleFun <- function(center = c(0.5,0),diameter = 1 , npoints = 100){
 
 circle1<- circleFun()
 
-color_map_1<-c(
+old_color_map_1<-c(
   "Enzyme-bound NADH"="#0072b2",
   "LDH NADH"= "#0072b2", 
   "Free NADH"= "#e69f00",
@@ -45,7 +45,15 @@ color_map_1<-c(
   "OLS" = "black" , 
   "PVD + Fe" = "#f0e442" )
 
-color_map_2<-c(
+color_map_1<-c(
+  "LDH NADH"= "#0072b2", 
+  "Free NADH"= "#e69f00",
+   "PVD"="#d55e00",
+  "PYO (Reduced)" = "#56b4e9",
+  "OHPhz (Reduced)" = "#009e73", 
+  "OLS" = "black"  )
+
+old_color_map_2<-c(
   "Enzyme-bound NADH"="#272727",
   "LDH NADH"="#272727",
   "Free NADH"="#696773",
@@ -54,7 +62,7 @@ color_map_2<-c(
 
 #EFF1F3
 
-shape_maps<-c(
+old_shape_maps<-c(
   "Enzyme-bound NADH"=22,
   "LDH NADH"=22,
   "Free NADH"=23,
@@ -66,7 +74,13 @@ shape_maps<-c(
   "CPX" = 22 ,
   "OLS" = 8)
 
-
+shape_maps<-c(
+  "LDH NADH"=22,
+  "Free NADH"=23,
+   "PVD"=24,
+  "PYO (Reduced)" = 25 , 
+  "OHPhz (Reduced)" = 21,
+  "OLS" = 8)
 
 color_shape_maps<-c(
   "Enzyme-bound NADH"= 0,
@@ -165,7 +179,7 @@ flim_pure<-ggplot()+
                 color_map_1['Free NADH'],
                       color_map_1['OHPhz (Reduced)'], 
                       color_map_1['PVD'], 
-                      color_map_1['PYO']
+                      color_map_1['PYO (Reduced)']
                       ))+
   #scale_fill_manual( values = yellow_blue) +
   theme( plot.background = element_rect(fill="white", color="white"),

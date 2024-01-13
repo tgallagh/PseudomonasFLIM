@@ -586,6 +586,9 @@ ggsave(plot=fig4,filename ="/Users/tara.gallagher/Documents/GitHub/PseudomonasFL
 
 ggsave(plot=fig4,filename ="/Users/tara.gallagher/Documents/GitHub/PseudomonasFLIM/Output/Paper/Figures/fig4.eps", device ='eps', height=8.9 , width=5.8 )
 
+
+ggsave(plot=fig4,filename ="/Users/tara.gallagher/Documents/GitHub/PseudomonasFLIM/Output/Paper/Figures/fig4.tiff", device ='tiff', height=8.9 , width=5.8 )
+
 ```
 
 ```{r distribution tests}

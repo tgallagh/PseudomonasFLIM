@@ -11,6 +11,36 @@ knitr::opts_chunk$set(echo = TRUE)
 require(dplyr)
 require(ggplot2)
 require(reshape2)
+```
+
+```{r color maps}
+
+color_map_1<-c(
+  "LDH NADH"= "#0072b2", 
+  "Free NADH"= "#e69f00",
+   "PVD"="#d55e00",
+  "PYO (Reduced)" = "#56b4e9",
+  "OHPhz (Reduced)" = "#009e73", 
+  "OLS" = "black" ,
+  "PCA (Reduced)" = "#D01C8B",
+  "PCN (Reduced)" = "#B2ABD2",
+  "CPX" = "#F1B6DA",
+  "FAD" = "#A6611A"
+
+    )
+
+shape_maps<-c(
+  "LDH NADH"=22,
+  "Free NADH"=23,
+   "PVD"=24,
+  "PYO (Reduced)" = 25 , 
+  "OHPhz (Reduced)" = 21,
+  "OLS" = 8,
+  "PCA (Reduced)" = 8,
+  "PCN (Reduced)" = 22,
+  "CPX" = 23,
+  "FAD" = 24)
+
 
 ```
 
@@ -19,11 +49,126 @@ require(reshape2)
 #Figure S1: Spectra of fluorophores not captured by DIVER FLIM : PCA, PCN, CPX, FAD
 
 ### DATA
-pixel_df <- read.csv(file =  '/Users/tara.gallagher/Documents/GitHub/PseudomonasFLIM/Data/Processed/df_fig2_spectra.csv', header=T)
+
+spectra_main <- read.csv( file= '/Users/sltg/Documents/GitHub/PseudomonasFLIM/Data/Processed/df_fig2_spectra.csv' )
+
+spectra_main$Sample <- gsub(spectra_main$Sample, 
+pattern = "Reduced PYO", replacement = "PYO (Reduced)")
+
+pca <- read.csv( file= '/Users/sltg/Documents/GitHub/PseudomonasFLIM/Data/Processed/df_pca_spectra.csv' ) 
+pcn <- read.csv( file= '/Users/sltg/Documents/GitHub/PseudomonasFLIM/Data/Processed/df_pcn_spectra.csv' ) 
+
+pca <- subset(pca, FileName == 'Old_PCA_TCEP_10p_25xW08NA_740nm_410_695_8_9nmsteps.lsm')
+pcn <- subset(pcn, FileName == 'Old_PCN_TCEP_10p_25xW08NA_740nm_410_695_8_9nmsteps.lsm')
+
+
+ohphz <- read.csv( file = '/Users/sltg/Documents/GitHub/PseudomonasFLIM/Data/Processed/df_ohphz_spectra.csv' )
+ggplot() + geom_line(data = ohphz, aes(x=Wavelength, y=Intensity, color=FileName))
+ggplot() + geom_line(data = subset(ohphz, FileName!='hydrozyphenazine_reduced100uMslide_740nm20x5na473_697nm_10nmres_73p_25uspixd_13um_t1_l624.lsm') , aes(x=Wavelength, y=Intensity, color=FileName))
+
+ggplot() + geom_line(data = subset(ohphz, FileName!='hydrozyphenazine_reduced100uMslide_740nm20x5na473_697nm_10nmres_62p_25uspixd_13um_t1_l624.lsm' & FileName!= 'hydrozyphenazine_reduced100uMslide_740nm20x5na473_697nm_10nmres_73p_25uspixd_13um_t1_l624.lsm' & FileName!= 'Old_OHPhz_TCEP_10p_25xW08NA_740nm_410_695_8_9nmsteps.lsm') , aes(x=Wavelength, y=Intensity, color=FileName))
+
+
+ohphz_subset <- subset(ohphz, FileName == 'OHPhz_DTT_10p_25xW08NA_740nm_410_695_8_9nmsteps.lsm')
+ohphz_subset$Sample <- ("OHPhz (Reduced)")
+
+
+spectra_subset <- rbind(spectra_main, pca, pcn, ohphz_subset)
+spectra_subset <- subset(spectra_subset, Sample != 'Reduced OHPhz')
+
+spectra_subset$Sample <- gsub(spectra_subset$Sample, 
+pattern = "PCN", replacement = "PCN (Reduced)")
+
+spectra_subset$Sample <- gsub(spectra_subset$Sample, 
+pattern = "PCA", replacement = "PCA (Reduced)")
+
+# dont use oh phz since non reproducible data
+#spectra <- subset(spectra, Sample!= "Reduced OHPhz")
+
+fig_s1 <- ggplot() +
+  geom_rect(mapping=aes(xmin=400, xmax=500, ymin=0, ymax=1), fill="#DCDCDC")  + 
+    geom_line(data = spectra_subset, aes(x=Wavelength, y=Normalized, color=Sample ), size=1) +
+  geom_point(data = spectra_subset, aes(x=Wavelength, y=Normalized, fill=Sample, shape= Sample), size=2) +
+scale_fill_manual( values = color_map_1) +
+ scale_shape_manual( values = shape_maps ) +
+ scale_color_manual( values = color_map_1  ) +
+  theme( plot.background = element_rect(fill="white", color="white"),
+        panel.background = element_rect(fill="white", color="black"),
+        panel.grid = element_blank(), 
+        axis.text=element_text(color="black",size=16),
+        axis.ticks=element_blank(),
+        axis.title.y = element_text(color="black", size=16),
+      axis.title.x= element_text(color="black", size=16),
+        strip.background = element_rect(color="black", fill="white"),
+        strip.text =element_text(color="black", size=12),
+                               legend.text=element_text(size=12),
+     strip.text.y=element_text(angle=0),
+     strip.text.x=element_text(angle=0),
+   plot.title = element_text(hjust = 0.5, size=12),
+   legend.background = element_rect(fill='white'),
+   legend.key = element_rect(fill='white'),
+        legend.title=element_blank() ) +
+  ylab("Normalized fluorescence")
+
+
+```
+
+
+```{r fig s2}
+
+# spectra of electrochemically reduced vs TCEP pyocyanin
+
+#electrochemicallyred_PYO821uM_10p_52fov_spectral_20xA_740nm_410-695_9nmstep_4usdwell_bidi16bitlinesum.lsm
+#500umPYO_600uMTCEP_2-07-2020_10p_42fov_spectral_63xO_740nm_410-695_9nmstep_32usdwell_bidi16bitlinesum.lsm
 
 
 
+ec_spectra <- read.csv( file= '/Users/sltg/Documents/GitHub/PseudomonasFLIM/Data/Processed/df_pyo_electrode_spectra.csv' )
 
+tcep <- read.csv( file= '/Users/sltg/Documents/GitHub/PseudomonasFLIM/Data/Processed/df_pyo_tcep_spectra.csv' )
+
+tcep$Sample <- gsub(pattern = "TCEP.*", replacement = "", tcep$Sample)
+tcep$Sample <- gsub(pattern = "_", replacement = "+", tcep$Sample)
+tcep <- subset(tcep, Sample != "Blank+blank1mM")
+
+tcep$Sample <- gsub(pattern = "uM", replacement = "uM TCEP" , tcep$Sample)
+tcep$Sample <- gsub(pattern = "um", replacement = "uM" , tcep$Sample)
+
+ec_spectra <- subset(ec_spectra, Sample == "Electrochemical Red")
+ec_spectra$Sample <- "821uM PYO+EC"
+
+ec_spectra <- rbind(ec_spectra, tcep)
+
+fig_s2a <- ggplot() +
+    geom_line(data = ec_spectra, aes(x=Wavelength, y=Normalized, color=Sample ), size=1) +
+  geom_point(data = ec_spectra, aes(x=Wavelength, y=Normalized, fill=Sample, shape= Sample), size=2) +
+  theme( plot.background = element_rect(fill="white", color="white"),
+        panel.background = element_rect(fill="white", color="black"),
+        panel.grid = element_blank(), 
+        axis.text=element_text(color="black",size=16),
+        axis.ticks=element_blank(),
+        axis.title.y = element_text(color="black", size=16),
+      axis.title.x= element_text(color="black", size=16),
+        strip.background = element_rect(color="black", fill="white"),
+        strip.text =element_text(color="black", size=12),
+                               legend.text=element_text(size=12),
+     strip.text.y=element_text(angle=0),
+     strip.text.x=element_text(angle=0),
+   plot.title = element_text(hjust = 0.5, size=12),
+   legend.background = element_rect(fill='white'),
+   legend.key = element_rect(fill='white'),
+        legend.title=element_blank() ) +
+  ylab("Normalized fluorescence")
+
+
+
+```
+
+```{r fig export}
+
+ggsave(plot=fig_s1,filename ="/Users/sltg/Documents/GitHub/PseudomonasFLIM/Output/Paper/Figures/figs1_spectra.eps", device ='eps', height=7, width=10 )
+
+ggsave(plot=fig_s2a,filename ="/Users/sltg/Documents/GitHub/PseudomonasFLIM/Output/Paper/Figures/figs2a_spectra.eps", device ='eps', height=7, width=10 )
 
 
 ```

@@ -100,7 +100,7 @@ white_black <- c("#F8F8FF", "#CAC9CD" ,  "#9B9A9C" , "#6D6A6A" , "#3E3B39" , "#1
 
 ```{r references}
 
-ref <- read.csv( file = "/Users/tara.gallagher/Documents/GitHub/PseudomonasFLIM/Data/Processed/ref_flim_means.csv")
+ref <- read.csv( file = "/Users/sltg/Documents/GitHub/PseudomonasFLIM/Data/Processed/ref_flim_means.csv")
 
 ```
 
@@ -132,7 +132,7 @@ ref <- rbind(ref, oxlipid)
 
 ```{r x-feeding flim plot }
 
-xfeed <- read.csv(file =  '/Users/tara.gallagher/Documents/GitHub/PseudomonasFLIM/Data/Processed/df_xfeed_flim.csv', header=T)
+xfeed <- read.csv(file =  '/Users/sltg/Documents/GitHub/PseudomonasFLIM/Data/Processed/df_xfeed_flim.csv', header=T)
 
 # get media condition
 xfeed$media <- ifelse(grepl('ASM', xfeed$FileName), 'ASM', 
@@ -268,10 +268,100 @@ filename_means <- all_binned %>% group_by( FileName, media_sup ) %>%
 
 all_means$media_sup_label <- ifelse(all_means$media_sup == "M9 suc+sup", paste("M9 suc + \n" , c(expression(italic("Rothia"))), "sup"), all_means$media_sup)
 
+
+all_asm <- subset(all_asm, singleton != "yes")
+all_m9s <- subset(all_m9s, singleton != "yes")
+all_m9s_sup <- subset(all_m9s_sup, singleton != "yes")
+
+# get low count bins
+library(mltools)
+library(FBN)
+# # get bins
+# filter out low counts
+
+all_asm$g1_bin <- as.character(bin_data(all_asm$g1, bins = 200))
+all_asm$s1_bin <- bin_data(all_asm$s1, bins = 200)
+g1_bin = table(all_asm$g1_bin)
+g1_bin = g1_bin[ g1_bin >100 ]
+g1_bin_low <- c(row.names(g1_bin))
+
+s1_bin = table(all_asm$s1_bin)
+s1_bin = s1_bin[ s1_bin >100 ]
+s1_bin_low <- c(row.names(s1_bin))
+# filter out low count bins
+all_asm_filter <- all_asm[ all_asm$g1_bin %in% g1_bin_low]
+all_asm_filter <- all_asm_filter[ all_asm_filter$s1_bin %in% s1_bin_low]
+
+
+
+all_m9s_sup$g1_bin <- as.character(bin_data(all_m9s_sup$g1, bins = 200))
+all_m9s_sup$s1_bin <- bin_data(all_m9s_sup$s1, bins = 200)
+g1_bin = table(all_m9s_sup$g1_bin)
+g1_bin = g1_bin[ g1_bin >100 ]
+g1_bin_low <- c(row.names(g1_bin))
+
+s1_bin = table(all_m9s_sup$s1_bin)
+s1_bin = s1_bin[ s1_bin >100 ]
+s1_bin_low <- c(row.names(s1_bin))
+# filter out low count bins
+all_m9s_sup_filter <- all_m9s_sup[ all_m9s_sup$g1_bin %in% g1_bin_low]
+all_m9s_sup_filter <- all_m9s_sup_filter[ all_m9s_sup_filter$s1_bin %in% s1_bin_low]
+
+
+
+
+all_m9s$g1_bin <- as.character(bin_data(all_m9s$g1, bins = 200))
+all_m9s$s1_bin <- bin_data(all_m9s$s1, bins = 200)
+g1_bin = table(all_m9s$g1_bin)
+g1_bin = g1_bin[ g1_bin >100 ]
+g1_bin_low <- c(row.names(g1_bin))
+
+s1_bin = table(all_m9s$s1_bin)
+s1_bin = s1_bin[ s1_bin >100 ]
+s1_bin_low <- c(row.names(s1_bin))
+# filter out low count bins
+all_m9s_filter <- all_m9s[ all_m9s$g1_bin %in% g1_bin_low]
+all_m9s_filter <- all_m9s_filter[ all_m9s_filter$s1_bin %in% s1_bin_low]
+
+
+
+
+
+# asm
+g1_med_filter = medianFilter( all_asm_filter$g1, windowSize = 3 )
+s1_med_filter = medianFilter( all_asm_filter$s1, windowSize = 3 )
+g1_med_filter = medianFilter( g1_med_filter, windowSize = 3 )
+s1_med_filter = medianFilter( s1_med_filter, windowSize = 3 )
+
+all_asm_filter <- all_asm_filter[ all_asm_filter$g1 %in% g1_med_filter ]
+all_asm_filter <- all_asm_filter[ all_asm_filter$s1 %in% s1_med_filter ]
+
+
+# M9 succinate
+g1_med_filter = medianFilter( all_m9s_filter$g1, windowSize = 3 )
+s1_med_filter = medianFilter( all_m9s_filter$s1, windowSize = 3 )
+g1_med_filter = medianFilter( g1_med_filter, windowSize = 3 )
+s1_med_filter = medianFilter( s1_med_filter, windowSize = 3 )
+
+all_m9s_filter <- all_m9s[ all_m9s$g1 %in% g1_med_filter ]
+all_m9s_filter <- all_m9s_filter[ all_m9s_filter$s1 %in% s1_med_filter ]
+
+
+# M9 succinate + sup 
+g1_med_filter = medianFilter( all_m9s_sup_filter$g1, windowSize = 3 )
+s1_med_filter = medianFilter( all_m9s_sup_filter$s1, windowSize = 3 )
+g1_med_filter = medianFilter( g1_med_filter, windowSize = 3 )
+s1_med_filter = medianFilter( s1_med_filter, windowSize = 3 )
+
+all_m9s_sup_filter <- all_m9s_sup[ all_m9s_sup$g1 %in% g1_med_filter ]
+all_m9s_sup_filter <- all_m9s_sup_filter[ all_m9s_sup_filter$s1 %in% s1_med_filter ]
+
+
+
 all_phasor <- ggplot()+
-  geom_bin2d(data = all_asm, aes(x=g1, y = s1), bins=250) + 
-  geom_bin2d(data = all_m9s, aes(x=g1, y = s1), bins=250) + 
-    geom_bin2d(data = all_m9s_sup, aes(x=g1, y = s1), bins=250) +
+  geom_bin2d(data = all_asm_filter, aes(x=g1, y = s1), bins=150) + 
+  geom_bin2d(data = all_m9s_filter, aes(x=g1, y = s1), bins=150) + 
+    geom_bin2d(data = all_m9s_sup_filter, aes(x=g1, y = s1), bins=150) +
        scale_fill_gradientn( colors = rev(yellow_blue), "Number \n of pixels")+
   geom_errorbar(data = all_means, aes(x=mean_g1, ymin = mean_s1 - std_s1, ymax = mean_s1 + std_s1), 
     position = position_dodge2(padding = 0.5)
@@ -312,11 +402,45 @@ all_phasor <- ggplot()+
   scale_shape_manual( values = c(media_shapes, shape_maps)  , "Condition")
 
 
+
+all_phasor2 <- ggplot()+
+  geom_bin2d(data = all_asm_filter, aes(x=g1, y = s1), bins=150) + 
+  geom_bin2d(data = all_m9s_filter, aes(x=g1, y = s1), bins=150) + 
+    geom_bin2d(data = all_m9s_sup_filter, aes(x=g1, y = s1), bins=150) +
+  facet_grid(.~media_sup) + 
+       scale_fill_gradientn( colors = rev(yellow_blue), "Number \n of pixels")+
+    geom_point( data = ref, aes(x=mean_g1, y=mean_s1, shape=object), fill="black", size=3)+
+  theme( plot.background = element_rect(fill="white", color="white"),
+        panel.background = element_rect(fill="white", color="black"),
+        panel.grid = element_blank(), 
+        axis.text=element_text(color="black",size=10),
+        axis.ticks=element_blank(),
+        axis.title.y = element_text(color="black", size=10),
+      axis.title.x= element_text(color="black", size=10),
+        strip.background = element_rect(color="black", fill="white"),
+        strip.text =element_text(color="black", size=10),
+                               legend.text=element_text(size=10),
+     strip.text.y=element_text(angle=0),
+     strip.text.x=element_text(angle=0),
+   plot.title = element_text(hjust = 0.5, size=12) ,
+   legend.background = element_rect(color='white' , fill='white'),
+   legend.position='top',
+   legend.key = element_rect(color='white', fill='white'),
+   legend.title = element_blank()) +
+    xlab(expression('G=M'%*%'cos('~phi~')'))+
+  ylab(expression('S=M'%*%'sin('~phi~')'))+
+    geom_path(data=subset(circle1, y>0),aes(x=x,y=y))+
+  scale_x_continuous(breaks=pretty_breaks(n=3))+
+  scale_y_continuous(breaks=pretty_breaks(n=3), limits = c(0,1))+
+  scale_shape_manual( values = c(media_shapes, shape_maps)  , "Condition")
+
+
+
 ### get legends
 gradient_only<-ggplot()+
-    geom_bin2d(data = all_asm, aes(x=g1, y = s1), bins=250) + 
-  geom_bin2d(data = all_m9s, aes(x=g1, y = s1), bins=250) + 
-    geom_bin2d(data = all_m9s_sup, aes(x=g1, y = s1), bins=250)+
+  geom_bin2d(data = all_asm_filter, aes(x=g1, y = s1), bins=150) + 
+  geom_bin2d(data = all_m9s_filter, aes(x=g1, y = s1), bins=150) + 
+    geom_bin2d(data = all_m9s_sup_filter, aes(x=g1, y = s1), bins=150) +
          scale_fill_gradientn( colors = rev(yellow_blue), "Number \n of pixels")+
    theme( plot.background = element_rect(fill="white", color="white"),
         panel.background = element_rect(fill="white", color="black"),
@@ -374,16 +498,15 @@ shapes_only<-ggplot()+
 
 flim_shapes_legend <- cowplot::get_legend(shapes_only)
 
-all_g1_density <- ggplot() + geom_density(data = all, aes(x = g1, fill=media_sup, color = media_sup),  size=0.5, alpha=0.3)+
+all_g1_density <- ggplot() + geom_density(data = rbind(all_asm_filter, all_m9s_filter, all_m9s_sup_filter), aes(x = g1, fill=media_sup, color = media_sup),  size=0.5, alpha=0.3)+
   scale_color_manual( values = media_colors )+
   scale_fill_manual(values = media_colors ) +
    theme( plot.background = element_rect(fill="white", color="white"),
         panel.background = element_rect(fill="white", color="black"),
         panel.grid = element_blank(), 
-        axis.text=element_text(color="black",size=14),
+        axis.text=element_text(color="black",size=10),
         axis.ticks=element_blank(),
-        axis.title.y = element_text(color="black", size=14),
-      axis.title.x= element_blank(),
+        axis.title = element_text(color="black", size=10),
         strip.background = element_rect(color="black", fill="white"),
         strip.text =element_text(color="black", size=12),
                                legend.text=element_text(size=12),
@@ -392,33 +515,31 @@ all_g1_density <- ggplot() + geom_density(data = all, aes(x = g1, fill=media_sup
    plot.title = element_text(hjust = 0.5, size=12),
         legend.title=element_blank() ,
    legend.position = 'none')+
-  scale_x_continuous(position="top", breaks=pretty_breaks(n=3), limits = c(0,1))+
+  scale_x_continuous( breaks=pretty_breaks(n=3), limits = c(0,.75))+
   ylab("Density")
 
 
-all_s1_density<- ggplot() + geom_density(data = all, aes(x = s1, fill=media_sup, color = media_sup),  size=0.5, alpha=0.3)+
+all_s1_density<- ggplot() + geom_density(data = rbind(all_asm_filter, all_m9s_filter, all_m9s_sup_filter), aes(x = s1, fill=media_sup, color = media_sup),  size=0.5, alpha=0.3)+
   scale_color_manual( values = media_colors )+
   scale_fill_manual(values = media_colors ) +
    theme( plot.background = element_rect(fill="white", color="white"),
         panel.background = element_rect(fill="white", color="black"),
         panel.grid = element_blank(), 
-        axis.text=element_text(color="black",size=14),
+        axis.text=element_text(color="black",size=10),
         axis.ticks=element_blank(),
-        axis.title.x = element_text(color="black", size=14),
-      axis.title.y = element_blank(),
+        axis.title = element_text(color="black", size=10),
         strip.background = element_rect(color="black", fill="white"),
-        strip.text =element_text(color="black", size=12),
-                               legend.text=element_text(size=12),
+        strip.text =element_text(color="black", size=10),
+                               legend.text=element_text(size=10),
      strip.text.y=element_text(angle=0),
      strip.text.x=element_text(angle=0),
-   plot.title = element_text(hjust = 0.5, size=12),
-        legend.title=element_text(size=12) ,
+   plot.title = element_text(hjust = 0.5, size=10),
    legend.background = element_rect(color='white' , fill='white'),
-   legend.position='none',
-   legend.key = element_rect(color='white', fill='white')) +
-  coord_flip() + 
-    scale_x_continuous(breaks=pretty_breaks(n=1), limits = c(0,1))+
-  scale_y_reverse()+
+   legend.key = element_rect(color='white', fill='white'),
+   legend.title = element_blank()) +
+ #coord_flip() + 
+    scale_x_continuous(breaks=pretty_breaks(n=3), limits = c(0,.75))+
+  # scale_y_reverse()+
   ylab("Density")
 
 
@@ -429,6 +550,8 @@ flim_shape_legend <- cowplot::get_legend(shapes_only)
 
 
 ```{r M9 succinate examples}
+
+
 
 # M9 succinate example image: "HypoxicP1M9S72h_Well1_4000" 17 fov
 m9s_ex <- xfeed[grepl(x = xfeed$FileName, pattern = 'HypoxicP1M9S72h_Well1_4000' ),]
@@ -531,7 +654,41 @@ ggplot() + geom_tile(data=ex_mapped , aes(x=g1,y=s1), fill=ex_mapped $coul)+
    plot.title = element_text(hjust = 0.5, size=12),
         legend.title=element_text(size=12) ) 
 
-ex_asm_mapped <- subset(ex_mapped, media_sup=='ASM')
+
+ex_asm_mapped_filter <- subset(ex_mapped, media_sup=='ASM')
+# 
+# ex_asm_plot <- ggplot() + geom_bin2d(data = ex_asm_mapped, aes(x=g1,y=s1, color=media_sup), bins=200)
+# 
+# # extract binned data 
+# ex_asm_binned <- ggplot_build( ex_asm_plot )$data[[1]]
+# ex_asm_binned$media_sup <- c('ASM')
+# colnames(ex_asm_binned)[c(6,7)] <- c("binned_g1", "binned_s1")
+# 
+# g1_med_filter = medianFilter( ex_asm_binned$binned_g1, windowSize = 3 )
+# s1_med_filter = medianFilter( ex_asm_binned$binned_s1, windowSize = 3 )
+# 
+# 
+# ex_asm_binned <- ex_asm_binned[ ex_asm_binned$binned_g1 %in% g1_med_filter, ]
+# ex_asm_binned <- ex_asm_binned[ ex_asm_binned$binned_s1 %in% s1_med_filter, ]
+
+# ex_asm_mapped_filter <- ex_asm_mapped_filter[ ex_asm_mapped_filter$s1 %in% s1_med_filter ,]
+
+ex_asm_mapped_filter$g1_bin <- as.character(bin_data(ex_asm_mapped_filter$g1, bins = 3000))
+ex_asm_mapped_filter$s1_bin <- bin_data(ex_asm_mapped_filter$s1, bins = 3000)
+g1_bin = table(ex_asm_mapped_filter$g1_bin)
+g1_bin = g1_bin[ g1_bin > 10 ]
+g1_bin_low <- c(row.names(g1_bin))
+s1_bin = table(ex_asm_mapped_filter$s1_bin)
+s1_bin = s1_bin[ s1_bin >10  ]
+s1_bin_low <- c(row.names(s1_bin))
+# filter out low count bins
+ex_asm_mapped_filter <- ex_asm_mapped_filter[ ex_asm_mapped_filter$g1_bin %in% g1_bin_low]
+ex_asm_mapped_filter <- ex_asm_mapped_filter[ ex_asm_mapped_filter$s1_bin %in% s1_bin_low]
+
+
+ex_mapped_filter <- rbind(ex_asm_mapped_filter, 
+                          subset( ex_mapped, media_sup != 'ASM'), fill = TRUE)
+
 
 ex_mapped_phasor <- ggplot() + geom_tile(data=ex_mapped, aes(x=g1,y=s1), fill=ex_mapped$coul)+
   theme(legend.position='none')+
@@ -647,36 +804,42 @@ wilcox.test( x = unlist(subset(all_binned, media_sup == 'M9 suc+sup')[,c('binned
 tablea<-textGrob(c("A"), gp=gpar(fontsize=40), vjust=c(-1,0), hjust=c(.5,0))
 tableb<-textGrob(c("B"), gp=gpar(fontsize=40), vjust=c(-1,0), hjust=c(.5,0))
 tablec<-textGrob(c("C"), gp=gpar(fontsize=40), vjust=c(-1,0), hjust=c(.5,0))
+tabled<-textGrob(c("D"), gp=gpar(fontsize=40), vjust=c(-1,0), hjust=c(.5,0))
 
-panel_a_legends<-arrangeGrob(flim_gradient_legend, flim_shapes_legend, nrow=2)
+# panel_a_legends<-arrangeGrob(flim_gradient_legend, flim_shapes_legend, nrow=2)
 
-panel_a <-arrangeGrob(tablea, all_phasor, ncol=2, widths=c(1,12) )
+# panel_a <-arrangeGrob(tablea, all_phasor, ncol=2, widths=c(1,12) )
+panel_a <-arrangeGrob(tablea, all_phasor2, ncol=2, widths=c(1,12) )
 
-panel_b <- arrangeGrob(tableb, ex_dc, ncol=2, widths=c(1,12))
+panel_b <- arrangeGrob( tableb, arrangeGrob(all_g1_density, all_s1_density, widths = c(1,1.9)) , widths = c(1,12) )
 
-panel_c <- arrangeGrob(tablec, 
+panel_c <- arrangeGrob(tablec, ex_dc, ncol=2, widths=c(1,12))
+
+panel_d <- arrangeGrob(tabled, 
                        arrangeGrob( ex_color_mapped, ex_mapped_phasor, nrow=2, heights=c(1.5,1)  ) , 
               ncol =2 , widths=c(1,12))
 
 
 # put panels together in illustrator 
 
-ggsave(plot=panel_a,filename ="/Users/tara.gallagher/Documents/GitHub/PseudomonasFLIM/Output/Paper/Figures/fig5a_xfeed.eps", device ='eps', height=2.5, width=6/1.6 )
+ggsave(plot=panel_a,filename ="/Users/sltg/Documents/GitHub/PseudomonasFLIM/Output/Paper/Figures/fig5a_xfeed.eps", device ='eps', height=3, width=8/1.6 )
 
-ggsave(plot=panel_a_legends,filename ="/Users/tara.gallagher//Documents/GitHub/PseudomonasFLIM/Output/Paper/Figures/fig5a_xfeed_legends.eps", device ='eps', height=4, width=2 )
+ggsave(plot=panel_b,filename ="/Users/sltg/Documents/GitHub/PseudomonasFLIM/Output/Paper/Figures/fig5b_xfeed.eps", device ='eps', height=1.65, width=8/1.6)
 
-ggsave(plot=all_g1_density,filename ="/Users/tara.gallagher//Documents/GitHub/PseudomonasFLIM/Output/Paper/Figures/fig5a_g1density_xfeed.eps", device ='eps', height=2/1.6, width=6/1.6 )
+# ggsave(plot=panel_a_legends,filename ="/Users/sltg//Documents/GitHub/PseudomonasFLIM/Output/Paper/Figures/fig5a_xfeed_legends.eps", device ='eps', height=4, width=2 )
 
-ggsave(plot=all_s1_density,filename ="/Users/tara.gallagher/Documents/GitHub/PseudomonasFLIM/Output/Paper/Figures/fig5a_s1_density_xfeed.eps", device ='eps', height=6/1.6, width=2/1.6)
+ggsave(plot=all_g1_density,filename ="/Users/sltg//Documents/GitHub/PseudomonasFLIM/Output/Paper/Figures/fig5a_g1density_xfeed.eps", device ='eps', height=2/1.6, width=6/1.6 )
 
-
-ggsave(plot=panel_b,filename ="/Users/tara.gallagher//Documents/GitHub/PseudomonasFLIM/Output/Paper/Figures/fig5b_xfeed.eps", device ='eps', height=3.6/1.33, width=8/1.6 )
-
-
-ggsave(plot=panel_c,filename ="/Users/tara.gallagher//Documents/GitHub/PseudomonasFLIM/Output/Paper/Figures/fig5c_xfeed.eps", device ='eps', height=4.7/1.5, width=8/1.6)
+ggsave(plot=all_s1_density,filename ="/Users/sltg/Documents/GitHub/PseudomonasFLIM/Output/Paper/Figures/fig5a_s1_density_xfeed.eps", device ='eps', height=6/1.6, width=2/1.6)
 
 
-ggsave(plot=blue_orange_legend,filename ="/Users/tara.gallagher//Documents/GitHub/PseudomonasFLIM/Output/Paper/Figures/fig5c_legend.eps", device ='eps', height=1, width=4 )
+ggsave(plot=panel_c,filename ="/Users/sltg//Documents/GitHub/PseudomonasFLIM/Output/Paper/Figures/fig5c_xfeed.eps", device ='eps', height=3.6/1.33, width=8/1.6 )
+
+
+ggsave(plot=panel_d,filename ="/Users/sltg//Documents/GitHub/PseudomonasFLIM/Output/Paper/Figures/fig5d_xfeed.eps", device ='eps', height=4.7/1.5, width=8/1.6)
+
+
+ggsave(plot=blue_orange_legend,filename ="/Users/sltg//Documents/GitHub/PseudomonasFLIM/Output/Paper/Figures/fig5c_legend.eps", device ='eps', height=1, width=4 )
 
 
 ```

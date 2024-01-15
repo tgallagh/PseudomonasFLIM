@@ -87,7 +87,9 @@ def frame_sum(df):
 
     """
     # sum across
-    df = np.sum(df[0,0,:,:,:],2)
+    #df = np.sum(df[0,0,:,:,:],2)
+    df = np.sum(df[:,:,:],2)
+    
     # sum down 
     df = np.sum(df, 1)
     return df 

@@ -15,6 +15,7 @@ require(extrafont)
 require(ggforce)
 require(scales)
 library(RColorBrewer)
+require(grDevices)
 
 ```
 
@@ -126,7 +127,7 @@ oxlipid$object<-c("OLS")
 ```{r flim pixel data}
 
 
-pixel_df <- read.csv(file =  '/Users/tara.gallagher/Documents/GitHub/PseudomonasFLIM/Data/Processed/df_refs_flim.csv', header=T)
+pixel_df <- read.csv(file =  '/Users/sltg/Documents/GitHub/PseudomonasFLIM/Data/Processed/df_refs_flim.csv', header=T)
 
 
 #red_passive_pyo<-data.frame(0.0289,0.145,"")
@@ -272,15 +273,15 @@ flim_pure_gradient_legend <- cowplot::get_legend(gradient_only)
 
 
 ```{r spectral data}
-spectra <- read.csv( file= '/Users/tara.gallagher/Documents/GitHub/PseudomonasFLIM/Data/Processed/df_fig2_spectra.csv' ) 
-semrock <- read.csv( file= '/Users/tara.gallagher/Documents/GitHub/PseudomonasFLIM/Data/Processed/df_fig2_semrock.csv' )
+spectra <- read.csv( file= '/Users/sltg/Documents/GitHub/PseudomonasFLIM/Data/Processed/df_fig2_spectra.csv' ) 
+semrock <- read.csv( file= '/Users/sltg/Documents/GitHub/PseudomonasFLIM/Data/Processed/df_fig2_semrock.csv' )
 
 # dont use oh phz since non reproducible data
 #spectra <- subset(spectra, Sample!= "Reduced OHPhz")
 
 spectra$Sample <- ifelse( spectra$Sample ==  'Reduced PYO', 'PYO (Reduced)' , spectra$Sample )
 
-ohphz <- read.csv( file = '/Users/tara.gallagher/Documents/GitHub/PseudomonasFLIM/Data/Processed/df_ohphz_spectra.csv' )
+ohphz <- read.csv( file = '/Users/sltg/Documents/GitHub/PseudomonasFLIM/Data/Processed/df_ohphz_spectra.csv' )
 ggplot() + geom_line(data = ohphz, aes(x=Wavelength, y=Intensity, color=FileName))
 ggplot() + geom_line(data = subset(ohphz, FileName!='hydrozyphenazine_reduced100uMslide_740nm20x5na473_697nm_10nmres_73p_25uspixd_13um_t1_l624.lsm') , aes(x=Wavelength, y=Intensity, color=FileName))
 
@@ -289,6 +290,7 @@ ggplot() + geom_line(data = subset(ohphz, FileName!='hydrozyphenazine_reduced100
 
 ohphz_subset <- subset(ohphz, FileName == 'OHPhz_DTT_10p_25xW08NA_740nm_410_695_8_9nmsteps.lsm')
 ohphz_subset$Sample <- ("OHPhz (Reduced)")
+ohphz_subset$Intensity <- ohphz_subset$Intensity * 10000
 
 spectra <- rbind(spectra, ohphz_subset)
 
@@ -296,7 +298,7 @@ spectra_subset <- subset(spectra, Sample!='CPX' & Sample!='FAD' & Sample!='Reduc
 
 
 spectra_plot <- ggplot() +
-  geom_rect(mapping=aes(xmin=400, xmax=500, ymin=0, ymax=1), fill="#DCDCDC")  + 
+  geom_rect(mapping=aes(xmin=400, xmax=500, ymin=0, ymax=1), fill="#DCDCDC", alpha=0.7)  + 
     geom_line(data = spectra_subset, aes(x=Wavelength, y=Normalized, color=Sample ), size=1) +
   geom_point(data = spectra_subset, aes(x=Wavelength, y=Normalized, fill=Sample, shape= Sample), size=2) +
   scale_fill_manual( values = color_map_1) + 
@@ -304,7 +306,7 @@ spectra_plot <- ggplot() +
   scale_color_manual( values = color_map_1  ) + 
   theme( plot.background = element_rect(fill="white", color="white"),
         panel.background = element_rect(fill="white", color="black"),
-        panel.grid = element_blank(), 
+        panel.grid = element_line(color = "black", size = 0.1), 
         axis.text=element_text(color="black",size=16),
         axis.ticks=element_blank(),
         axis.title.y = element_text(color="black", size=16),
@@ -319,7 +321,8 @@ spectra_plot <- ggplot() +
    legend.background = element_rect(fill='white'),
    legend.key = element_rect(fill='white'),
         legend.title=element_blank() ) +
-  ylab("Normalized fluorescence")
+  ylab("Normalized fluorescence")+
+  scale_x_continuous(breaks = c(400, 450, 500, 550, 600, 650, 700))
 
 
 
@@ -346,6 +349,6 @@ bottom_panel <- arrangeGrob(tableb, flim_legend, ncol=2, widths=c(1,12))
 
 figure2 <- arrangeGrob(top_panel, bottom_panel, nrow=2)
 
-ggsave(plot=figure2,filename ="/Users/tara.gallagher/Documents/GitHub/PseudomonasFLIM/Output/Paper/Figures/fig2_spectra_phasor.eps", device ='eps', height=7, width=7.5 )
+ggsave(plot=figure2,filename ="/Users/sltg/Documents/GitHub/PseudomonasFLIM/Output/Paper/Figures/fig2_spectra_phasor.eps" , device = cairo_ps, height=7, width=7.5 )
 
 ```

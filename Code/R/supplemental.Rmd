@@ -72,6 +72,8 @@ ggplot() + geom_line(data = subset(ohphz, FileName!='hydrozyphenazine_reduced100
 ohphz_subset <- subset(ohphz, FileName == 'OHPhz_DTT_10p_25xW08NA_740nm_410_695_8_9nmsteps.lsm')
 ohphz_subset$Sample <- ("OHPhz (Reduced)")
 
+ohphz_higher_int <- subset(ohphz, FileName == "hydrozyphenazine_reduced100uMslide_740nm20x5na473_697nm_10nmres_62p_25uspixd_13um_t1_l624.lsm")
+ohphz_higher_int$Sample <- ("OHPhz (Reduced)")
 
 spectra_subset <- rbind(spectra_main, pca, pcn, ohphz_subset)
 spectra_subset <- subset(spectra_subset, Sample != 'Reduced OHPhz')
@@ -86,7 +88,7 @@ pattern = "PCA", replacement = "PCA (Reduced)")
 #spectra <- subset(spectra, Sample!= "Reduced OHPhz")
 
 fig_s1 <- ggplot() +
-  geom_rect(mapping=aes(xmin=400, xmax=500, ymin=0, ymax=1), fill="#DCDCDC")  + 
+  geom_rect(mapping=aes(xmin=400, xmax=500, ymin=0, ymax=1), fill="#DCDCDC", alpha=0.7)  + 
     geom_line(data = spectra_subset, aes(x=Wavelength, y=Normalized, color=Sample ), size=1) +
   geom_point(data = spectra_subset, aes(x=Wavelength, y=Normalized, fill=Sample, shape= Sample), size=2) +
 scale_fill_manual( values = color_map_1) +
@@ -94,7 +96,7 @@ scale_fill_manual( values = color_map_1) +
  scale_color_manual( values = color_map_1  ) +
   theme( plot.background = element_rect(fill="white", color="white"),
         panel.background = element_rect(fill="white", color="black"),
-        panel.grid = element_blank(), 
+        panel.grid = element_line(color = "black", size = 0.1),
         axis.text=element_text(color="black",size=16),
         axis.ticks=element_blank(),
         axis.title.y = element_text(color="black", size=16),
@@ -108,7 +110,36 @@ scale_fill_manual( values = color_map_1) +
    legend.background = element_rect(fill='white'),
    legend.key = element_rect(fill='white'),
         legend.title=element_blank() ) +
-  ylab("Normalized fluorescence")
+  ylab("Normalized fluorescence")+
+    scale_x_continuous(breaks = c(400, 450, 500, 550, 600, 650, 700))
+
+
+
+fig_s1_raw <- ggplot() +
+    geom_rect(mapping=aes(xmin=400, xmax=500, ymin=0, ymax=3e9), fill="#DCDCDC", alpha=0.7)  +  
+  geom_line(data = spectra_subset, aes(x=Wavelength, y = (Intensity), color=Sample ), size=1) +
+  geom_point(data = spectra_subset, aes(x=Wavelength, y = (Intensity), fill=Sample, shape= Sample), size=2) +
+scale_fill_manual( values = color_map_1) +
+ scale_shape_manual( values = shape_maps ) +
+ scale_color_manual( values = color_map_1  ) +
+  theme( plot.background = element_rect(fill="white", color="white"),
+        panel.background = element_rect(fill="white", color="black"),
+        panel.grid = element_line(color = "black", size = 0.1),
+        axis.text=element_text(color="black",size=16),
+        axis.ticks=element_blank(),
+        axis.title.y = element_text(color="black", size=16),
+      axis.title.x= element_text(color="black", size=16),
+        strip.background = element_rect(color="black", fill="white"),
+        strip.text =element_text(color="black", size=12),
+                               legend.text=element_text(size=12),
+     strip.text.y=element_text(angle=0),
+     strip.text.x=element_text(angle=0),
+   plot.title = element_text(hjust = 0.5, size=12),
+   legend.background = element_rect(fill='white'),
+   legend.key = element_rect(fill='white'),
+        legend.title=element_blank() ) +
+  ylab("Fluorescent Intensity")+
+    scale_x_continuous(breaks = c(400, 450, 500, 550, 600, 650, 700))
 
 
 ```
@@ -138,13 +169,43 @@ ec_spectra <- subset(ec_spectra, Sample == "Electrochemical Red")
 ec_spectra$Sample <- "821uM PYO+EC"
 
 ec_spectra <- rbind(ec_spectra, tcep)
+# 
+# fig_s2a <- ggplot() +
+#     geom_line(data = ec_spectra, aes(x=Wavelength, y=Normalized, color=Sample ), size=1) +
+#   geom_point(data = ec_spectra, aes(x=Wavelength, y=Normalized, fill=Sample, shape= Sample), size=2) +
+#   theme( plot.background = element_rect(fill="white", color="white"),
+#         panel.background = element_rect(fill="white", color="black"),
+#         panel.grid = element_blank(), 
+#         axis.text=element_text(color="black",size=16),
+#         axis.ticks=element_blank(),
+#         axis.title.y = element_text(color="black", size=16),
+#       axis.title.x= element_text(color="black", size=16),
+#         strip.background = element_rect(color="black", fill="white"),
+#         strip.text =element_text(color="black", size=12),
+#                                legend.text=element_text(size=12),
+#      strip.text.y=element_text(angle=0),
+#      strip.text.x=element_text(angle=0),
+#    plot.title = element_text(hjust = 0.5, size=12),
+#    legend.background = element_rect(fill='white'),
+#    legend.key = element_rect(fill='white'),
+#         legend.title=element_blank() ) +
+#   ylab("Normalized fluorescence")
+# 
+# 
+
+ec_spectra$Sample <- factor(ec_spectra$Sample, levels = c("500uMPYO+75uM TCEP",
+                                                          "500uMPYO+300uM TCEP" ,
+                                                         "500uMPYO+400uM TCEP",
+                                                        "500uMPYO+500uM TCEP", 
+                                                        "500uMPYO+600uM TCEP",
+                                                       "821uM PYO+EC" ))
 
 fig_s2a <- ggplot() +
-    geom_line(data = ec_spectra, aes(x=Wavelength, y=Normalized, color=Sample ), size=1) +
-  geom_point(data = ec_spectra, aes(x=Wavelength, y=Normalized, fill=Sample, shape= Sample), size=2) +
+    geom_line(data = ec_spectra, aes(x=Wavelength, y= Intensity, color=Sample ), size=1) +
+  geom_point(data = ec_spectra, aes(x=Wavelength, y= Intensity, fill=Sample, shape= Sample), size=2) +
   theme( plot.background = element_rect(fill="white", color="white"),
         panel.background = element_rect(fill="white", color="black"),
-        panel.grid = element_blank(), 
+        panel.grid = element_line(color = "black", size = 0.1),
         axis.text=element_text(color="black",size=16),
         axis.ticks=element_blank(),
         axis.title.y = element_text(color="black", size=16),
@@ -158,7 +219,9 @@ fig_s2a <- ggplot() +
    legend.background = element_rect(fill='white'),
    legend.key = element_rect(fill='white'),
         legend.title=element_blank() ) +
-  ylab("Normalized fluorescence")
+  ylab("Fluorescent Intensity") +
+      scale_x_continuous(breaks = c(400, 450, 500, 550, 600, 650, 700))
+
 
 
 
@@ -166,7 +229,17 @@ fig_s2a <- ggplot() +
 
 ```{r fig export}
 
-ggsave(plot=fig_s1,filename ="/Users/sltg/Documents/GitHub/PseudomonasFLIM/Output/Paper/Figures/figs1_spectra.eps", device ='eps', height=7, width=10 )
+
+tablea<-textGrob(c("A"), gp=gpar(fontsize=40), vjust=c(-1,0), hjust=c(.5,0))
+tableb<-textGrob(c("B"), gp=gpar(fontsize=40), vjust=c(-1,0), hjust=c(.5,0))
+
+top_panel <- arrangeGrob(tablea, fig_s1, ncol=2, widths=c(1,12))
+bottom_panel <- arrangeGrob(tableb, fig_s1_raw, ncol=2, widths=c(1,12))
+
+figures1 <- arrangeGrob(top_panel, bottom_panel, nrow=2)
+
+
+ggsave(plot=figures1,filename ="/Users/sltg/Documents/GitHub/PseudomonasFLIM/Output/Paper/Figures/figs1_spectra.eps", device =cairo_ps, height=7, width=10 )
 
 ggsave(plot=fig_s2a,filename ="/Users/sltg/Documents/GitHub/PseudomonasFLIM/Output/Paper/Figures/figs2a_spectra.eps", device ='eps', height=7, width=10 )
 

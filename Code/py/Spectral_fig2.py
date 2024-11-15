@@ -9,7 +9,7 @@ Created on Mon Mar 16 14:34:57 2020
 # make plots of zeiss LSM files containing spectral 32-channel images
 
 # libraries
-import utils.lsmfiles as lsmfiles
+
 import os
 import tifffile as tiff
 import numpy as np
@@ -17,6 +17,10 @@ import matplotlib.pyplot as plt
 import pandas as pd 
 import seaborn as sns
 
+os.chdir('/Users/sltg/Documents/GitHub/PseudomonasFLIM/Code/py')
+
+
+import utils.lsmfiles as lsmfiles
 
 # grab lsm files
 # 
@@ -30,12 +34,13 @@ spec_df = pd.DataFrame()
 for file in os.listdir(dyes_dir):
     if 'lsm' in file:
         path = dyes_dir + file
+        print(path)
         df = lsmfiles.get_lsm(path)
         spectra, wavelen = lsmfiles.channels(path)
         df = lsmfiles.frame_sum(df)
         df = lsmfiles.scale(df, wavelen)
         df.insert(0, "FileName", file)
-        spec_df = spec_df.append(df)
+        spec_df = pd.concat( [spec_df, df] )
         
 
 #spec_df.FileName.astype("category")
@@ -67,6 +72,53 @@ sns.lineplot(x="Wavelength", y="Normalized", hue="Sample", data=spec_df[spec_df.
 spec_df.to_csv(df_path)
 semrock_filter.to_csv(df_sem_path)
 
+# get pca data
+pca_dir = '/Users/sltg/Documents/GitHub/PseudomonasFLIM/Data/Spectral/Dyes/PCA/'
+pca_path = '/Users/sltg/Documents/GitHub/PseudomonasFLIM/Data/Processed/df_pca_spectra.csv'
+
+
+spec_df = pd.DataFrame()
+for file in os.listdir(pca_dir):
+    if 'lsm' in file:
+        path = pca_dir + file
+        df = lsmfiles.get_lsm(path)
+        spectra, wavelen = lsmfiles.channels(path)
+        df = lsmfiles.frame_sum(df)
+        df = lsmfiles.scale(df, wavelen)
+        df.insert(0, "FileName", file)
+        spec_df = pd.concat( [spec_df, df] )
+        
+
+spec_df.insert(0,"Sample",spec_df.FileName)
+spec_df.Sample[spec_df.Sample.str.contains("PCA")]="PCA"
+
+spec_df.to_csv(pca_path)
+
+
+# get pcn data
+pcn_dir = '/Users/sltg/Documents/GitHub/PseudomonasFLIM/Data/Spectral/Dyes/PCN/'
+pcn_path = '/Users/sltg/Documents/GitHub/PseudomonasFLIM/Data/Processed/df_pcn_spectra.csv'
+
+
+spec_df = pd.DataFrame()
+for file in os.listdir(pcn_dir):
+    if 'lsm' in file:
+        path = pcn_dir + file
+        df = lsmfiles.get_lsm(path)
+        spectra, wavelen = lsmfiles.channels(path)
+        df = lsmfiles.frame_sum(df)
+        df = lsmfiles.scale(df, wavelen)
+        df.insert(0, "FileName", file)
+        spec_df = pd.concat( [spec_df, df] )
+   
+
+spec_df.insert(0,"Sample",spec_df.FileName)
+spec_df.Sample[spec_df.Sample.str.contains("PCN")]="PCN"
+
+spec_df.to_csv(pcn_path)
+
+
+
  ### get oh phz data
  
 ohphz_dir = '/Users/sltg/Documents/GitHub/PseudomonasFLIM/Data/Spectral/Dyes/OhPhz/'
@@ -81,8 +133,55 @@ for file in os.listdir(ohphz_dir):
         df = lsmfiles.frame_sum(df)
         df = lsmfiles.scale(df, wavelen)
         df.insert(0, "FileName", file)
-        spec_df = spec_df.append(df)
+        spec_df = pd.concat( [spec_df, df] )
         
 spec_df.to_csv(ohphz_path)
 
+
+
+# get electrochemical red data
+
+ec_dir = '/Users/sltg/Documents/GitHub/PseudomonasFLIM/Data/Spectral/pyo_electrode/'
+ec_path = '/Users/sltg/Documents/GitHub/PseudomonasFLIM/Data/Processed/df_pyo_electrode_spectra.csv'
+
+
+spec_df = pd.DataFrame()
+for file in os.listdir(ec_dir):
+    if 'lsm' in file:
+        path = ec_dir + file
+        df = lsmfiles.get_lsm(path)
+        spectra, wavelen = lsmfiles.channels(path)
+        df = lsmfiles.frame_sum(df)
+        df = lsmfiles.scale(df, wavelen)
+        df.insert(0, "FileName", file)
+        spec_df = pd.concat( [spec_df, df] )
+   
+
+spec_df.insert(0,"Sample",spec_df.FileName)
+spec_df.Sample[spec_df.Sample.str.contains("electrochemicallyred")]="Electrochemical Red"
+spec_df.Sample[spec_df.Sample.str.contains("TCEP")]="TCEP"
+
+spec_df.to_csv(ec_path)
         
+# TCEP data
+
+
+tcep_dir = '/Users/sltg/Documents/GitHub/PseudomonasFLIM/Data/Spectral/pyo_tcep_gradients/'
+tcep_path = '/Users/sltg/Documents/GitHub/PseudomonasFLIM/Data/Processed/df_pyo_tcep_spectra.csv'
+
+
+spec_df = pd.DataFrame()
+for file in os.listdir(tcep_dir):
+    if 'lsm' in file:
+        path = tcep_dir + file
+        df = lsmfiles.get_lsm(path)
+        spectra, wavelen = lsmfiles.channels(path)
+        df = lsmfiles.frame_sum(df)
+        df = lsmfiles.scale(df, wavelen)
+        df.insert(0, "FileName", file)
+        spec_df = pd.concat( [spec_df, df] )
+   
+
+spec_df.insert(0,"Sample",spec_df.FileName)
+
+spec_df.to_csv(tcep_path)

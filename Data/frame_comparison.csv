@@ -1,0 +1,13 @@
+﻿condition,depth,frames,,g,s
+WT_ASM_1,surface,1,first,0.053,0.091
+WT_ASM_1,surface,16.00,all,0.054,0.092
+WT_ASM_1,bottom,1,first,0.288,0.331
+WT_ASM_1,bottom,12,all,0.282,0.333
+WT_ASM_2,surface,1,first,0.096,0.145
+WT_ASM_2,surface,18,all,0.102,0.148
+WT_ASM_2,bottom,1,first,0.26,0.311
+WT_ASM_2,bottom,11,all,0.296,0.338
+WT_ASM_3,surface,4,first,0.062,0.076
+WT_ASM_3,surface,28,all,0.083,0.13
+WT_ASM_3,bottom,11,first,0.257,0.298
+WT_ASM_3,bottom,11,all,0.288,0.349

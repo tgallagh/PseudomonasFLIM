@@ -1,0 +1,96 @@
+---
+title: "Flim_Figure1"
+author: "tara"
+updated: "10/21/24" 
+output: html_document
+---
+
+
+
+```{r packages, echo=FALSE}
+require(ggplot2)
+require(gridExtra)
+require(grid)
+require(extrafont)
+require(ggforce)
+require(scales)
+require(dplyr)
+
+```
+
+```{r}
+df = read.csv(file = "/Users/sltg/Documents/GitHub/PseudomonasFLIM/Data/frame_comparison.csv")
+
+circleFun <- function(center = c(0.5,0),diameter = 1 , npoints = 100){
+    r = diameter / 2
+    tt <- seq(0,2*pi,length.out = npoints)
+    xx <- center[1] + r * cos(tt)
+    yy <- center[2] + r * sin(tt)
+    return(data.frame(x = xx, y = yy))
+}
+
+circle1<- circleFun()
+
+frames_compare <-ggplot()+ geom_point(data = df, aes(x = X , y = g , color = condition, shape = condition), size = 3) +
+facet_grid(depth ~ . , scale = "free") +
+  theme( plot.background = element_rect(fill="white"),
+        panel.background = element_rect(fill="white", color="black"),
+        axis.ticks = element_blank(),
+        panel.grid = element_blank(),
+     axis.text =element_text(color="black", size = 16),
+       axis.title.y = element_text(color="black", size=16),
+      axis.title.x= element_text(color="black", size=16),
+        strip.background = element_rect(color="black", fill="white"),
+        strip.text =element_text(color="black", size=16),
+                               legend.text=element_text(size=12),
+     strip.text.y=element_text(angle=0),
+     strip.text.x=element_text(angle=0),
+   plot.title = element_text(hjust = 0.5, size=12),
+        legend.title=element_text(size=12))+
+  ylab("G")+
+  xlab("Frames")
+
+first_frames <- subset(df, X = "first")
+
+
+first_frames_phasor <-ggplot()+ geom_point(data = df, aes(x = g , y = s , color = as.factor(X), shape = as.factor(X)), size = 3) +
+  facet_grid(as.factor(depth) ~.) + 
+  theme( plot.background = element_rect(fill="white"),
+        panel.background = element_rect(fill="white", color="black"),
+        axis.ticks = element_blank(),
+        panel.grid = element_blank(),
+     axis.text =element_text(color="black", size = 16),
+       axis.title.y = element_text(color="black", size=16),
+      axis.title.x= element_text(color="black", size=16),
+        strip.background = element_rect(color="black", fill="white"),
+        strip.text =element_text(color="black", size=16),
+                               legend.text=element_text(size=16),
+     strip.text.y=element_text(angle=0),
+     strip.text.x=element_text(angle=0),
+   plot.title = element_text(hjust = 0.5, size=18),
+        legend.title=element_text(size=16),
+   legend.background = element_rect(fill="white"),
+   legend.key = element_rect(fill = "white"))+
+   geom_path(data=subset(circle1, y>0),aes(x=x,y=y))+
+  ylab("S")+
+  xlab("G") +
+labs(col="frames used", shape = "frames used")+
+  ggtitle("Mean G and S for an Image")
+
+```
+
+
+
+```{r grid}
+
+tableA<-textGrob(c("A"), gp=gpar(fontsize=40), vjust=c(-3))
+
+toppanel <-
+  arrangeGrob(  tableA, first_frames_phasor, ncol = 2 , widths = c(1,12) )
+
+ggsave(plot=toppanel, filename = "/Users/sltg/Documents/GitHub/PseudomonasFLIM/Output/Paper/Figures/supplemental_frame_compare.eps", device='eps', height=4, width=8)
+
+
+
+
+```

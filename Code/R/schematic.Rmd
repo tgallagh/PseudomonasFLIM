@@ -15,6 +15,7 @@ require(grid)
 require(extrafont)
 require(ggforce)
 require(scales)
+require(dplyr)
 
 ```
 
@@ -27,7 +28,7 @@ yt2=exp(-xt2*.5)
 
 
 xt3<-seq(0,100,.1)
-yt3=exp(-xt*2)+exp(-xt2*.5)
+yt3=exp(-xt*2)+exp(-xt2*.6)
 
 xseq<-seq(-100,100,.01)
 densities<-dnorm(xseq, 0,.3)
@@ -86,7 +87,7 @@ FLIM_mod_phase<-ggplot()+
    geom_segment(color="#696969", aes(x=xseq[which(densities==max(densities))], xend=.05, y=max(yt)*1.1, yend=max(yt)*1.1),arrow = arrow(length = unit(0.03, "npc")))+
     geom_segment(color="#696969",aes(x=xseq[which(densities==max(densities))], xend=.2, y=max(yt2)*.5, yend=max(yt2)*.5),arrow = arrow(length = unit(0.03, "npc")))+
   geom_segment(color="#696969", aes(x=xseq[which(densities==max(densities))], xend=.1, y=max(yt3)*.4, yend=max(yt3)*.4),arrow = arrow(length = unit(0.03, "npc")))+
-  xlim(-.5,3)+
+  xlim(-.5,2)+
   theme(
         plot.background = element_rect(fill="white"),
         panel.background = element_rect(fill="white", color="black"),
@@ -103,7 +104,7 @@ FLIM_mod_phase<-ggplot()+
      strip.text.x=element_text(angle=0),
    plot.title = element_text(hjust = 0.5, size=12),
         legend.title=element_text(size=12))+
-  ylab("Intensity")+
+  ylab("Fluorescent Intensity")+
   xlab("time (ns)")
 
 phasorFun <- function(omega,time){
@@ -127,6 +128,16 @@ circle1<- circleFun()
 freeNADH<-phasorFun(80,0.4)
 enzymeNADH<-phasorFun(80,3.4)
 
+flim10ns <- phasorFun(80,10)
+flim2ns <- phasorFun(80,2)
+flim3ns <- phasorFun(80,3)
+flim0.1ns <- phasorFun(80,0.1)
+flim5ns <- phasorFun(80,5)
+flim1ns <- phasorFun(80,1)
+
+
+times <- rbind(flim10ns, flim2ns, flim5ns, flim1ns, flim3ns, flim0.1ns)
+
 lifetime_example<-freeNADH/2 + enzymeNADH/2
 slope=(enzymeNADH$s-freeNADH$s)/(enzymeNADH$g-freeNADH$g)
 
@@ -143,6 +154,7 @@ flimphasor<-ggplot()+  geom_segment(data=rbind(freeNADH, enzymeNADH), aes(x= 0.9
   geom_point(data = freeNADH, aes(x=g, y=s), color="#E69F00", size=6, shape=15)+
   geom_point(data=enzymeNADH, aes(x=g,y=s), color="#56B4E9", size=6)+
     geom_point(data=lifetime_example, aes(x=g-0.2,y=s+0.07), color="#009E73", size=8, shape=18)+
+  geom_point(data=times, aes(x=g,y=s), color="black", size=3)+
  # geom_text(data=circle,x=0.685, y=0.1932496-0.05, label=("FC"),size=9)+
 
    theme( plot.background = element_rect(fill="white"),
